@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Command Extraction</title>
+    <script src="https://unpkg.com/grapesjs@0.21.7/dist/grapes.min.js"></script>
+    <link href="https://unpkg.com/grapesjs@0.21.7/dist/css/grapes.min.css" rel="stylesheet"/>
+</head>
+<body>
+    <div id="gjs"></div>
+    <div id="test-results"></div>
+    
+    <script type="module">
+        // Initialize GrapesJS
+        const editor = grapesjs.init({
+            container: '#gjs',
+            height: '300px',
+            storageManager: false,
+            fromElement: true,
+            plugins: []
+        });
+        
+        // Wait for editor to load
+        editor.on('load', () => {
+            console.log('Editor loaded, testing command extraction...');
+            
+            // Add some components to generate command history
+            const wrapper = editor.getWrapper();
+            const comp1 = editor.addComponents('<div>Test 1</div>')[0];
+            const comp2 = editor.addComponents('<div>Test 2</div>')[0];
+            
+            // Make some style changes
+            comp1.addStyle({ color: 'red', 'font-size': '20px' });
+            comp2.addStyle({ background: 'blue', padding: '10px' });
+            
+            // Select component
+            editor.select(comp1);
+            
+            // Test our command extraction logic
+            const undoManager = editor.UndoManager;
+            const commandStack = undoManager.getStack();
+            
+            console.log('Command stack length:', commandStack.length);
+            console.log('Raw command stack:', commandStack);
+            
+            // Extract command details like in AI Copilot
+            const recentCommands = commandStack.slice(-10).map((command, index) => {
+                let commandName = 'unknown';
+                let commandType = 'unknown';
+                
+                // Try different ways to get command name
+                if (typeof command.getName === 'function') {
+                    commandName = command.getName();
+                } else if (command.id) {
+                    commandName = command.id;
+                } else if (command.constructor && command.constructor.name) {
+                    commandType = command.constructor.name;
+                    commandName = commandType;
+                }
+                
+                // Extract details
+                const details = {};
+                
+                try {
+                    // Try to get command attributes
+                    if (typeof command.get === 'function') {
+                        const attrs = ['target', 'property', 'value', 'prevValue', 'component', 'style'];
+                        attrs.forEach(attr => {
+                            try {
+                                const val = command.get(attr);
+                                if (val !== undefined) {
+                                    if (val && typeof val.get === 'function') {
+                                        // It's a model, get its tag name or type
+                                        details[attr] = val.get('tagName') || val.get('type') || 'component';
+                                    } else {
+                                        details[attr] = val;
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore errors for individual attributes
+                            }
+                        });
+                    }
+                    
+                    // Try to get from attributes property
+                    if (command.attributes) {
+                        Object.assign(details, command.attributes);
+                    }
+                    
+                    // Try to get from options
+                    if (command.options) {
+                        Object.assign(details, command.options);
+                    }
+                } catch (error) {
+                    details.error = error.message;
+                }
+                
+                return {
+                    index: commandStack.length - 10 + index,
+                    name: commandName,
+                    type: commandType,
+                    details: Object.keys(details).length > 0 ? details : { raw: command.toString() },
+                    timestamp: Date.now() - (10 - index) * 1000
+                };
+            });
+            
+            console.log('Processed commands:', JSON.stringify(recentCommands, null, 2));
+            
+            // Display results
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = `
+                <h3>Command Extraction Test Results</h3>
+                <p><strong>Total commands:</strong> ${commandStack.length}</p>
+                <h4>Recent Commands:</h4>
+                <pre>${JSON.stringify(recentCommands, null, 2)}</pre>
+                
+                <h4>Raw Command Objects:</h4>
+                <pre>${JSON.stringify(commandStack.map(cmd => ({
+                    constructor: cmd.constructor.name,
+                    methods: Object.getOwnPropertyNames(cmd).filter(prop => typeof cmd[prop] === 'function'),
+                    properties: Object.getOwnPropertyNames(cmd).filter(prop => typeof cmd[prop] !== 'function'),
+                    prototype: Object.getOwnPropertyNames(Object.getPrototypeOf(cmd))
+                })), null, 2)}</pre>
+            `;
+        });
+    </script>
+</body>
+</html>
