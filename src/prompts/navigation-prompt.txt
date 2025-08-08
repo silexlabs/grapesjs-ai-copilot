@@ -1,0 +1,14 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut naviguer ou se déplacer dans l'interface Silex.
+
+OBJECTIF: Guider l'utilisateur vers l'élément ou la fonctionnalité recherchée en utilisant les méthodes GrapesJS pour la navigation.
+
+Demande de navigation: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Utilise editor.Panels pour accéder aux panneaux
+- Utilise editor.select() pour sélectionner des éléments
+- Utilise les méthodes de navigation de GrapesJS
+- Explique où se trouve l'élément recherché dans l'interface
+- Propose des raccourcis ou méthodes rapides

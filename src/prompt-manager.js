@@ -1,25 +1,47 @@
 // Prompt Manager for AI Copilot
-// Handles loading and templating of AI prompts
+// Handles loading and templating of AI prompts with intent support
 
 export class PromptManager {
   constructor(options = {}) {
     this.customPrompt = options.customPrompt;
     this.promptUrl = options.promptUrl;
     this.defaultPrompt = null;
+    this.basePrompt = null;
     this.loadedPrompt = null;
+    this.intentPrompts = new Map(); // Cache for intent-specific prompts
   }
   
-  // Load the default prompt from the bundled file
+  // Load the base prompt that will be used for all intents
+  async loadBasePrompt() {
+    if (this.basePrompt) return this.basePrompt;
+    
+    try {
+      const response = await fetch(new URL('./prompts/base-prompt.txt', import.meta.url));
+      if (response.ok) {
+        this.basePrompt = await response.text();
+      } else {
+        throw new Error('Could not load base prompt file');
+      }
+    } catch (error) {
+      console.warn('[AI Copilot] Using fallback base prompt:', error.message);
+      this.basePrompt = this.getFallbackPrompt();
+    }
+    
+    return this.basePrompt;
+  }
+
+  // Load the default prompt from the bundled file (fallback)
   async loadDefaultPrompt() {
     if (this.defaultPrompt) return this.defaultPrompt;
     
     try {
-      // Try to load from the bundled file or use fallback
+      // Try to load from the bundled file or use base prompt
       const response = await fetch(new URL('./prompts/default-prompt.txt', import.meta.url));
       if (response.ok) {
         this.defaultPrompt = await response.text();
       } else {
-        throw new Error('Could not load default prompt file');
+        // Fallback to base prompt if default doesn't exist
+        this.defaultPrompt = await this.loadBasePrompt();
       }
     } catch (error) {
       console.warn('[AI Copilot] Using fallback prompt:', error.message);
@@ -28,9 +50,53 @@ export class PromptManager {
     
     return this.defaultPrompt;
   }
+
+  // Load an intent-specific prompt
+  async loadIntentPrompt(intentKey) {
+    if (this.intentPrompts.has(intentKey)) {
+      return this.intentPrompts.get(intentKey);
+    }
+
+    const promptFiles = {
+      'question': 'question-prompt.txt',
+      'navigation': 'navigation-prompt.txt', 
+      'add-page': 'add-page-prompt.txt',
+      'add-section': 'add-section-prompt.txt',
+      'modify-page': 'modify-page-prompt.txt',
+      'modify-site': 'modify-site-prompt.txt',
+      'modify-selection': 'modify-selection-prompt.txt',
+      'expressions': 'expressions-prompt.txt',
+      'detect-problems': 'detect-problems-prompt.txt'
+    };
+
+    const fileName = promptFiles[intentKey];
+    if (!fileName) {
+      console.warn(`[AI Copilot] No prompt file found for intent: ${intentKey}`);
+      return await this.loadDefaultPrompt();
+    }
+
+    try {
+      const response = await fetch(new URL(`./prompts/${fileName}`, import.meta.url));
+      if (response.ok) {
+        const intentPrompt = await response.text();
+        this.intentPrompts.set(intentKey, intentPrompt);
+        return intentPrompt;
+      } else {
+        throw new Error(`Could not load intent prompt: ${fileName}`);
+      }
+    } catch (error) {
+      console.warn(`[AI Copilot] Error loading intent prompt ${intentKey}:`, error.message);
+      return await this.loadDefaultPrompt();
+    }
+  }
   
-  // Get the active prompt (custom, URL, or default)
-  async getPrompt() {
+  // Get the active prompt (custom, URL, intent-specific, or default)
+  async getPrompt(intentKey = null) {
+    // For intent-specific prompts, don't use cached loadedPrompt
+    if (intentKey) {
+      return await this.getIntentPrompt(intentKey);
+    }
+
     if (this.loadedPrompt) return this.loadedPrompt;
     
     // Priority: custom prompt > URL prompt > default prompt
@@ -60,10 +126,24 @@ export class PromptManager {
     console.log('[AI Copilot] Using default prompt');
     return this.loadedPrompt;
   }
+
+  // Get intent-specific prompt with base prompt injection
+  async getIntentPrompt(intentKey) {
+    const intentPrompt = await this.loadIntentPrompt(intentKey);
+    const basePrompt = await this.loadBasePrompt();
+    
+    // Replace {{basePrompt}} placeholder with actual base prompt
+    return intentPrompt.replace('{{basePrompt}}', basePrompt);
+  }
   
   // Process the prompt template with context data
   async processPrompt(context) {
-    const template = await this.getPrompt();
+    const intentKey = context.intentKey || null;
+    const template = await this.getPrompt(intentKey);
+    
+    // Get selected component info
+    const selectedComponent = context.selectedComponent || 'Aucun élément sélectionné';
+    const componentCount = context.projectData?.components?.length || 0;
     
     return this.replaceTemplate(template, {
       currentHtml: context.currentHtml || '',
@@ -71,6 +151,8 @@ export class PromptManager {
       projectData: JSON.stringify(context.projectData || {}, null, 2),
       userPrompt: context.userPrompt || 'No specific user request - suggest general improvements',
       states: this.formatStates(context.states),
+      selectedComponent: selectedComponent,
+      componentCount: componentCount,
       // Keep legacy support for older templates
       html: context.currentHtml || '',
       css: context.currentCss || '',

@@ -1,0 +1,16 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut créer du contenu créatif, améliorer le design, ou travailler sur l'aspect visuel/artistique.
+
+OBJECTIF: Créer ou améliorer des éléments créatifs (textes, designs, couleurs, mises en page artistiques).
+
+Demande créative: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Propose des solutions créatives et originales
+- Utilise des couleurs harmonieuses et modernes
+- Crée des mises en page visuellement attractives
+- Ajoute des animations CSS subtiles si approprié
+- Soigne particulièrement la typographie et les espacements
+- Utilise les tendances web design actuelles
+- Privilégie l'impact visuel et l'émotion

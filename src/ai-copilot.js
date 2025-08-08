@@ -1,6 +1,7 @@
 import { createAIProvider } from './ai-providers';
 import { PromptManager } from './prompt-manager';
 import { AISuggestionComponent } from './ai-suggestion-component';
+import IntentManager from './intent-manager';
 
 // AI Copilot class to manage AI API interactions and web component interface
 class AICopilot {
@@ -55,6 +56,7 @@ class AICopilot {
       customPrompt: this.options.customPrompt,
       promptUrl: this.options.promptUrl
     });
+    this.intentManager = new IntentManager();
 
     this.init();
   }
@@ -66,6 +68,7 @@ class AICopilot {
     this.setupActionTracking();
     this.setupConsoleInterception();
     this.startPeriodicAnalysis();
+
   }
 
   // Create and inject the web component into GrapesJS interface
@@ -167,7 +170,7 @@ class AICopilot {
 
     // Listen for user prompts
     this.suggestionComponent.addEventListener('user-prompt', (event) => {
-      this.handleUserPrompt(event.detail.prompt);
+      this.handleUserPrompt(event.detail.prompt, event.detail.intentKey);
     });
   }
 
@@ -553,6 +556,7 @@ class AICopilot {
     const currentHtml = this.editor.getHtml();
     const currentCss = this.editor.getCss();
     const projectData = this.editor.getProjectData();
+    const selectedComponent = this.editor.getSelected();
 
     // Build states array from response history
     const states = this.responseHistory.slice(0, 5).map(response => ({
@@ -571,7 +575,10 @@ class AICopilot {
       currentHtml,
       currentCss,
       projectData,
-      states
+      states,
+      selectedComponent: selectedComponent ?
+        `${selectedComponent.get('tagName') || 'div'} (${selectedComponent.getId() || 'no-id'})` :
+        'Aucun élément sélectionné'
     };
   }
 
@@ -757,8 +764,8 @@ class AICopilot {
 
 
   // Handle user prompts
-  async handleUserPrompt(userPrompt) {
-    console.log('[AI Copilot] User prompt:', userPrompt);
+  async handleUserPrompt(userPrompt, intentKey = null) {
+    console.log('[AI Copilot] User prompt:', userPrompt, 'Intent:', intentKey);
 
     // Set loading state
     this.setLoading(true);
@@ -766,6 +773,7 @@ class AICopilot {
     try {
       const context = this.gatherContext();
       context.userPrompt = userPrompt; // Add user prompt to context
+      context.intentKey = intentKey; // Add intent to context
 
       const prompt = await this.buildAnalysisPrompt(context);
 
@@ -788,6 +796,7 @@ class AICopilot {
         htmlSnapshot: context.currentHtml,
         cssSnapshot: context.currentCss,
         userPrompt: userPrompt, // Store the user prompt
+        intentKey: intentKey, // Store the intent
         feedback: null
       };
 

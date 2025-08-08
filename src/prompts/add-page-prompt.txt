@@ -1,0 +1,14 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut ajouter une nouvelle page au site.
+
+OBJECTIF: Créer une nouvelle page avec une structure de base appropriée.
+
+Demande d'ajout de page: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Utilise editor.Pages.add() pour ajouter une page
+- Crée une structure HTML de base appropriée
+- Ajoute des métadonnées essentielles (title, etc.)
+- Propose une mise en page de départ logique
+- Configure les paramètres de base de la page

@@ -1,0 +1,29 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut détecter et corriger des problèmes d'éco-conception, d'accessibilité, de SEO ou de performance.
+
+OBJECTIF: Analyser le code existant pour identifier et corriger les problèmes détectés.
+
+Demande d'analyse: "{{userPrompt}}"
+
+Instructions spécifiques:
+ACCESSIBILITÉ:
+- Vérifie les attributs alt sur les images
+- Contrôle les contrastes de couleurs
+- Vérifie la hiérarchie des titres (h1, h2, etc.)
+- Ajoute les attributs ARIA nécessaires
+- Assure la navigation clavier
+
+SEO:
+- Vérifie les métadonnées (title, meta description)
+- Contrôle la structure sémantique HTML
+- Vérifie les liens internes et leur pertinence
+- Optimise les balises de titre
+
+ÉCO-CONCEPTION:
+- Optimise les images (format, taille)
+- Réduit le code CSS/JS inutile
+- Utilise des fontes système quand possible
+- Évite les animations coûteuses
+
+Propose des corrections concrètes avec du code GrapesJS.

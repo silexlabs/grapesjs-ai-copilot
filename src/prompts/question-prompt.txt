@@ -1,0 +1,13 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur pose une question générale sur Silex, GrapesJS ou le développement web.
+
+OBJECTIF: Répondre à la question de manière claire et pédagogique, et si possible proposer un exemple pratique.
+
+Question de l'utilisateur: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Explique clairement le concept demandé
+- Si c'est une question technique, fournis un exemple de code GrapesJS
+- Mentionne les ressources utiles (documentation, etc.)
+- Reste dans le contexte de Silex/GrapesJS

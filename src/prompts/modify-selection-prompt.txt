@@ -1,0 +1,17 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut modifier l'élément actuellement sélectionné.
+
+OBJECTIF: Modifier l'élément sélectionné selon la demande de l'utilisateur.
+
+Demande de modification: "{{userPrompt}}"
+Élément sélectionné: {{selectedComponent}}
+
+Instructions spécifiques:
+- Utilise editor.getSelected() pour obtenir l'élément sélectionné
+- Applique les modifications demandées avec les méthodes appropriées:
+  - component.addStyle() pour les styles
+  - component.setAttributes() pour les attributs  
+  - component.setContent() pour le contenu
+- Vérifie que l'élément sélectionné existe avant toute modification
+- Conserve les propriétés importantes non mentionnées dans la demande

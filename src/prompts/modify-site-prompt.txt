@@ -1,0 +1,14 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut modifier des éléments globaux du site (styles généraux, navigation globale, etc.).
+
+OBJECTIF: Apporter des modifications qui affectent l'ensemble du site ou plusieurs pages.
+
+Demande de modification globale: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Utilise editor.Css.add() pour les styles globaux
+- Modifie les éléments qui impactent toutes les pages
+- Travaille avec les variables CSS et styles réutilisables  
+- Considère l'impact sur la cohérence visuelle globale
+- Utilise les méthodes pour gérer les assets globaux

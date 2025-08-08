@@ -1,0 +1,14 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut modifier la page actuelle dans sa globalité.
+
+OBJECTIF: Apporter des modifications à la structure, au contenu ou au style de la page.
+
+Demande de modification: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Analyse la structure actuelle de la page
+- Utilise les méthodes GrapesJS appropriées pour les modifications globales
+- Conserve les éléments importants existants sauf demande contraire
+- Améliore la cohérence visuelle et structurelle
+- Respecte les bonnes pratiques de mise en page

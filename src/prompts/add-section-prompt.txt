@@ -1,0 +1,15 @@
+{{basePrompt}}
+
+CONTEXTE: L'utilisateur veut ajouter une section ou un composant à la page actuelle.
+
+OBJECTIF: Créer et insérer le composant demandé avec un style approprié.
+
+Demande d'ajout: "{{userPrompt}}"
+
+Instructions spécifiques:
+- Utilise editor.addComponents() pour ajouter les éléments
+- Crée des composants sémantiques et accessibles
+- Ajoute des styles CSS appropriés avec editor.Css.add()
+- Respecte la structure existante de la page
+- Utilise des classes CSS cohérentes
+- Position l'élément de manière logique dans le flux
