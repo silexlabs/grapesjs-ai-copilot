@@ -6,6 +6,8 @@
 
 Turn GrapesJS into a vibe coding experience. **grapesjs-ai-copilot** watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.
 
+> This code is part of a bigger project: [about Silex v3](https://www.silex.me)
+
 ## ✨ Features
 
 - 🤖 **AI-Powered Suggestions**: Real-time analysis with Claude AI
@@ -45,12 +47,12 @@ const editor = grapesjs.init({
       aiProvider: 'openai',
       apiKey: 'sk-proj-...', // Your OpenAI API key
       model: 'gpt-4o', // Optional
-      
+
       // OR Claude Configuration
       // aiProvider: 'claude',
       // apiKey: 'sk-ant-api03-...',
       // model: 'claude-3-5-sonnet-20241022',
-      
+
       updateInterval: 10000, // 10 seconds
       minChangesThreshold: 3
     }
@@ -118,17 +120,17 @@ const editor = grapesjs.init({
   pluginsOpts: {
     'grapesjs-ai-copilot': {
       // Option 1: Direct custom prompt
-      customPrompt: `You are a specialized SEO assistant. 
+      customPrompt: `You are a specialized SEO assistant.
         Focus only on SEO improvements and suggestions.
-        
+
         Current state: {{html}}
         Selected: {{selectedComponent}}
-        
+
         Create an SEO audit interface with window.editor actions.`,
-        
+
       // Option 2: Load prompt from URL
       promptUrl: 'https://my-site.com/prompts/seo-focused.txt',
-      
+
       aiProvider: 'openai',
       apiKey: 'your-key'
     }
@@ -140,7 +142,7 @@ const editor = grapesjs.init({
 
 Your custom prompts can use these template variables:
 - `{{html}}` - Current page HTML
-- `{{css}}` - Current page CSS  
+- `{{css}}` - Current page CSS
 - `{{componentCount}}` - Number of components
 - `{{canUndo}}` - Whether undo is available
 - `{{canRedo}}` - Whether redo is available
@@ -309,10 +311,10 @@ The AI will automatically detect and suggest fixes for:
 .container { width: 800px; }
 
 /* AI suggests */
-.container { 
-  max-width: 800px; 
-  width: 100%; 
-  padding: 0 20px; 
+.container {
+  max-width: 800px;
+  width: 100%;
+  padding: 0 20px;
 }
 @media (max-width: 768px) {
   .container { padding: 0 10px; }
