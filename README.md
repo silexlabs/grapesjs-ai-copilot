@@ -2,7 +2,7 @@
 
 ![AI Copilot Banner](https://img.shields.io/badge/AI-Copilot-blue?style=for-the-badge)
 [![npm version](https://badge.fury.io/js/grapesjs-ai-copilot.svg)](https://badge.fury.io/js/grapesjs-ai-copilot)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL](https://img.shields.io/badge/License-AGPL-yellow.svg)](https://opensource.org/licenses/agpl-v3)
 
 Turn GrapesJS into a vibe coding experience. **grapesjs-ai-copilot** watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.
 
@@ -327,7 +327,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-MIT © [lexoyo](https://github.com/lexoyo)
+AGPL © [silexlabs](https://github.com/silexlabs)
 
 ## 🔑 Getting API Keys
 
