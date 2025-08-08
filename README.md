@@ -1,12 +1,13 @@
 # GrapesJS AI Copilot
 
 ![AI Copilot Banner](https://img.shields.io/badge/AI-Copilot-blue?style=for-the-badge)
-[![npm version](https://badge.fury.io/js/grapesjs-ai-copilot.svg)](https://badge.fury.io/js/grapesjs-ai-copilot)
 [![License: AGPL](https://img.shields.io/badge/License-AGPL-yellow.svg)](https://opensource.org/licenses/agpl-v3)
 
-Turn GrapesJS into a vibe coding experience. **grapesjs-ai-copilot** watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.
+Turn GrapesJS into a vibe coding experience. **@silexlabs/grapesjs-ai-copilot** watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.
 
 > This code is part of a bigger project: [about Silex v3](https://www.silex.me)
+
+[ONLINE DEMO (requires an OpenAI API key)](https://codepen.io/lexoyo/pen/EaVvYQd)
 
 ## ✨ Features
 
@@ -23,7 +24,7 @@ Turn GrapesJS into a vibe coding experience. **grapesjs-ai-copilot** watches you
 ### Installation
 
 ```bash
-npm install grapesjs-ai-copilot
+npm install @silexlabs/grapesjs-ai-copilot
 ```
 
 ### Basic Usage
@@ -31,7 +32,7 @@ npm install grapesjs-ai-copilot
 ```html
 <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
 <script src="https://unpkg.com/grapesjs"></script>
-<script src="https://unpkg.com/grapesjs-ai-copilot"></script>
+<script src="https://unpkg.com/@silexlabs/grapesjs-ai-copilot"></script>
 
 <div id="gjs"></div>
 ```
@@ -40,9 +41,9 @@ npm install grapesjs-ai-copilot
 const editor = grapesjs.init({
   container: '#gjs',
   height: '100vh',
-  plugins: ['grapesjs-ai-copilot'],
+  plugins: ['@silexlabs/grapesjs-ai-copilot'],
   pluginsOpts: {
-    'grapesjs-ai-copilot': {
+    '@silexlabs/grapesjs-ai-copilot': {
       // OpenAI Configuration
       aiProvider: 'openai',
       apiKey: 'sk-proj-...', // Your OpenAI API key
@@ -64,14 +65,14 @@ const editor = grapesjs.init({
 
 ```javascript
 import grapesjs from 'grapesjs';
-import aiCopilot from 'grapesjs-ai-copilot';
+import aiCopilot from '@silexlabs/grapesjs-ai-copilot';
 import 'grapesjs/dist/css/grapes.min.css';
 
 const editor = grapesjs.init({
   container: '#gjs',
   plugins: [aiCopilot],
   pluginsOpts: {
-    'grapesjs-ai-copilot': {
+    '@silexlabs/grapesjs-ai-copilot': {
       aiProvider: 'openai', // or 'claude'
       apiKey: process.env.OPENAI_API_KEY, // or ANTHROPIC_API_KEY
       model: 'gpt-4o', // Optional
@@ -116,9 +117,9 @@ The AI Copilot supports custom prompts to tailor the assistant's behavior to you
 
 ```javascript
 const editor = grapesjs.init({
-  plugins: ['grapesjs-ai-copilot'],
+  plugins: ['@silexlabs/grapesjs-ai-copilot'],
   pluginsOpts: {
-    'grapesjs-ai-copilot': {
+    '@silexlabs/grapesjs-ai-copilot': {
       // Option 1: Direct custom prompt
       customPrompt: `You are a specialized SEO assistant.
         Focus only on SEO improvements and suggestions.
@@ -163,7 +164,7 @@ The plugin includes several pre-built prompts for different use cases:
 
 ```javascript
 // Get the AI Copilot instance
-const copilot = editor.plugins.get('grapesjs-ai-copilot').aiCopilot();
+const copilot = editor.plugins.get('@silexlabs/grapesjs-ai-copilot').aiCopilot();
 
 // Update prompt configuration
 copilot.updatePromptConfig({
@@ -213,7 +214,7 @@ The AI Copilot analyzes your website and provides suggestions in these categorie
 
 ```javascript
 // Get the AI Copilot instance
-const copilot = editor.plugins.get('grapesjs-ai-copilot').aiCopilot();
+const copilot = editor.plugins.get('@silexlabs/grapesjs-ai-copilot').aiCopilot();
 
 // Force analysis
 await copilot.forceAnalysis();
@@ -260,7 +261,7 @@ The AI Copilot appears as a floating panel in the GrapesJS interface, providing:
 Clone and setup:
 
 ```bash
-git clone https://github.com/lexoyo/grapesjs-ai-copilot.git
+git clone https://github.com/silexlabs/grapesjs-ai-copilot.git
 cd grapesjs-ai-copilot
 npm install
 ```
