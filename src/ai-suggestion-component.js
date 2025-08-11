@@ -9,7 +9,9 @@ class AISuggestionComponent extends LitElement {
     showCode: { type: Boolean },
     statusMessage: { type: String },
     statusType: { type: String },
-    userPrompt: { type: String }
+    userPrompt: { type: String },
+    promptHistory: { type: Array },
+    historyIndex: { type: Number }
   };
 
   // No shadow DOM styles - inherit from GrapesJS
@@ -30,6 +32,8 @@ class AISuggestionComponent extends LitElement {
     this.statusMessage = '';
     this.statusType = '';
     this.userPrompt = '';
+    this.promptHistory = [];
+    this.historyIndex = -1;
   }
 
   render() {
@@ -210,20 +214,59 @@ class AISuggestionComponent extends LitElement {
     if (event.key === 'Enter' && !event.shiftKey && this.userPrompt.trim()) {
       event.preventDefault();
       this.handleUserPrompt();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.navigateHistory('up');
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.navigateHistory('down');
     }
   }
 
   handleUserPrompt() {
     if (!this.userPrompt.trim()) return;
 
+    const prompt = this.userPrompt.trim();
+
+    // Add to history if it's not the same as the last entry
+    if (this.promptHistory.length === 0 || this.promptHistory[0] !== prompt) {
+      this.promptHistory.unshift(prompt);
+      // Keep only last 50 prompts
+      if (this.promptHistory.length > 50) {
+        this.promptHistory = this.promptHistory.slice(0, 50);
+      }
+    }
+
+    // Reset history index
+    this.historyIndex = -1;
+
     // Dispatch user prompt event
     this.dispatchEvent(new CustomEvent('user-prompt', {
-      detail: { prompt: this.userPrompt.trim() },
+      detail: { prompt: prompt },
       bubbles: true
     }));
 
     // Clear the input
     this.userPrompt = '';
+  }
+
+  navigateHistory(direction) {
+    if (this.promptHistory.length === 0) return;
+
+    if (direction === 'up') {
+      if (this.historyIndex < this.promptHistory.length - 1) {
+        this.historyIndex++;
+        this.userPrompt = this.promptHistory[this.historyIndex];
+      }
+    } else if (direction === 'down') {
+      if (this.historyIndex > 0) {
+        this.historyIndex--;
+        this.userPrompt = this.promptHistory[this.historyIndex];
+      } else if (this.historyIndex === 0) {
+        this.historyIndex = -1;
+        this.userPrompt = '';
+      }
+    }
   }
 
   // Method to update the suggestion from parent
