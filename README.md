@@ -11,13 +11,16 @@ Turn GrapesJS into a vibe coding experience. **@silexlabs/grapesjs-ai-copilot** 
 
 ## ✨ Features
 
-- 🤖 **AI-Powered Suggestions**: Real-time analysis with Claude AI
-- 🔍 **SEO Optimization**: Automatic detection and fixes for SEO issues
-- ♿ **Accessibility Improvements**: WCAG compliance suggestions
-- 📱 **Responsive Design**: Mobile-first design recommendations
-- ⚡ **Performance Optimization**: Image compression and loading suggestions
-- 🎨 **Smart Components**: Context-aware component suggestions
-- 🚀 **Vibe Coding**: Anticipates your needs while you build
+- 🤖 **Interactive AI Assistant**: Chat with AI to make specific changes ("make the header red", "add responsive navigation")
+- 💬 **Smart Auto-Suggestions**: AI analyzes your edits and suggests improvements automatically  
+- 🔄 **Intelligent Retry System**: Automatic retry with exponential backoff when requests fail
+- 🛠️ **Error Handling**: "Didn't work" button to restart failed requests with debugging context
+- 📊 **Technical Metrics**: Track tokens used, retry attempts, and error counts
+- ⏹️ **Request Control**: Stop button to cancel long-running AI requests
+- 🐛 **Advanced Debugging**: AI analyzes console logs to fix failed code attempts
+- 🎯 **Context-Aware**: Understands your recent actions and suggests complementary improvements
+- 🔍 **SEO & Accessibility**: Smart suggestions for web standards compliance
+- 📱 **Responsive Design**: Device-aware styling recommendations
 
 ## 🚀 Quick Start
 
@@ -89,13 +92,14 @@ const editor = grapesjs.init({
 |--------|------|-------------|---------|
 | `aiProvider` | string | AI provider: 'claude' or 'openai' | `'claude'` |
 | `apiKey` | string | API key for chosen provider (required) | `null` |
-| `model` | string | Specific model to use | `'claude-3-5-sonnet-20241022'` or `'gpt-4o'` |
+| `model` | string | Specific model to use (uses provider default if null) | `null` |
 | `maxTokens` | number | Maximum tokens for AI response | `2000` |
 | `updateInterval` | number | Analysis interval in milliseconds | `20000` |
 | `minChangesThreshold` | number | Minimum changes before analysis | `5` |
-| `iframeContainerId` | string | Container ID for the AI interface | `'ai-copilot-container'` |
 | `customPrompt` | string | Custom prompt template (optional) | `null` |
 | `promptUrl` | string | URL to load prompt from (optional) | `null` |
+| `containerElement` | HTMLElement | HTML element to insert the AI interface | `null` |
+| `containerSelector` | string | CSS selector for container element | `null` |
 
 ### Environment Variables
 
@@ -208,53 +212,33 @@ The AI Copilot analyzes your website and provides suggestions in these categorie
 - CSS minification
 - Unused code detection
 
-## 🛠️ API Reference
-
-### Plugin Instance
-
-```javascript
-// Get the AI Copilot instance
-const copilot = editor.plugins.get('@silexlabs/grapesjs-ai-copilot').aiCopilot();
-
-// Force analysis
-await copilot.forceAnalysis();
-
-// Get analysis history
-const history = copilot.getAnalysisHistory();
-
-// Access action methods
-const actions = copilot.getActions();
-```
-
-### Custom Actions
-
-You can extend the copilot with custom actions:
-
-```javascript
-const actions = copilot.getActions();
-
-// Add custom SEO fix
-actions.fixSEOIssues({
-  action: 'add-meta-description',
-  value: 'Your custom meta description'
-});
-
-// Add responsive component
-actions.addComponent({
-  componentType: 'card',
-  props: { title: 'My Card', content: 'Card content' },
-  position: 'bottom'
-});
-```
 
 ## 🎨 Interface
 
-The AI Copilot appears as a floating panel in the GrapesJS interface, providing:
+The AI Copilot appears as a panel in the GrapesJS interface with:
 
-- **Real-time suggestions** based on your edits
-- **One-click fixes** for common issues
-- **Health score** for your website
-- **Action history** and feedback
+### 💬 **Interactive Chat Interface**
+- **Text input field** to ask AI for specific changes
+- **Command history** with arrow key navigation (up/down)
+- **Auto-execution** of user-requested changes
+
+### 📊 **Technical Metrics Display**
+- **Token usage** tracking for API costs
+- **Retry attempts** when requests fail
+- **Error indicators** with detailed feedback
+- **Success/failure** status with visual indicators
+
+### 🎛️ **Control Buttons**
+- **"Ask AI"** - Submit custom requests
+- **"Suggest"** - Get automatic improvement suggestions  
+- **"Stop"** - Cancel running requests
+- **"Didn't work"** - Restart with failure analysis
+- **"Show/Hide code"** - View generated JavaScript
+
+### 🔍 **Smart Context Awareness**
+- Detects recent user actions
+- Avoids suggesting already-completed tasks
+- Provides relevant improvement suggestions
 
 ## 🔧 Development
 
@@ -278,48 +262,104 @@ Build for production:
 npm run build
 ```
 
-## 📝 Examples
+## 🗣️ Interactive Prompting
 
-### Basic SEO Optimization
+### Ask AI for Specific Changes
 
-The AI will automatically detect and suggest fixes for:
+Simply type what you want in the input field:
 
-```html
-<!-- Before -->
-<img src="image.jpg">
-<h1>Title</h1>
-
-<!-- AI suggests -->
-<img src="image.jpg" alt="Descriptive alt text">
-<h1>Title</h1>
-<meta name="description" content="Generated description">
+```
+"make the header red"
+"add a responsive navigation menu"
+"center all the text on mobile"
+"add alt text to all images"
+"create a hero section with a call-to-action button"
 ```
 
-### Accessibility Improvements
+The AI will:
+1. Generate JavaScript code using GrapesJS APIs
+2. Auto-execute the code for you
+3. Show technical metrics (tokens used, success status)
+4. Include comprehensive debugging logs
 
-```html
-<!-- Before -->
-<button onclick="submit()">Click</button>
+### Error Handling & Debugging
 
-<!-- AI suggests -->
-<button onclick="submit()" aria-label="Submit form">Click</button>
+When something doesn't work:
+
+1. **"Didn't work" button** appears after auto-execution
+2. Click it to restart with failure context
+3. AI analyzes console logs and error messages
+4. Suggests a completely different approach
+
+```
+User: "make all text blue"
+AI: Executes code... (fails due to selector issue)
+User: Clicks "Didn't work"
+AI: "I see the selector failed. Let me try a different approach using component iteration instead..."
 ```
 
-### Responsive Design
+## 📊 Technical Metrics & Debugging
 
-```css
-/* Before */
-.container { width: 800px; }
+### Real-time Feedback
+- 🪙 **Token usage**: Track API costs
+- 🔄 **Retry attempts**: See when requests fail and retry
+- ⚠️ **Error counts**: Detailed error tracking
+- ✅/❌ **Status indicators**: Visual success/failure feedback
 
-/* AI suggests */
-.container {
-  max-width: 800px;
-  width: 100%;
-  padding: 0 20px;
-}
-@media (max-width: 768px) {
-  .container { padding: 0 10px; }
-}
+### Advanced Debugging
+The AI generates comprehensive console.log statements:
+
+```javascript
+// Generated code includes debugging
+console.log('=== Starting device selection ===');
+editor.Devices.select('Desktop');
+console.log('✅ Device selected successfully');
+
+console.log('=== Finding components ===');
+const components = editor.getWrapper().find('text');
+console.log(`Found ${components.length} text components`);
+
+components.forEach((comp, index) => {
+  console.log(`Processing component ${index + 1}/${components.length}`);
+  comp.addStyle({ color: 'blue' });
+  console.log(`✅ Applied blue color to component ${index + 1}`);
+});
+```
+
+## 📝 Usage Examples
+
+### Basic Interactive Usage
+
+```javascript
+// User types in the AI interface:
+"make the navigation responsive"
+
+// AI automatically:
+// 1. Analyzes current navigation structure
+// 2. Generates responsive JavaScript code
+// 3. Executes the code immediately
+// 4. Shows success metrics and debugging logs
+```
+
+### Automatic Suggestions
+
+```javascript
+// After you edit components, AI suggests:
+"I notice you added several images without alt text. 
+Would you like me to add descriptive alt attributes?"
+
+// Click "Apply" to accept the suggestion
+```
+
+### Error Recovery
+
+```javascript
+// If AI code fails:
+User: Clicks "Didn't work" 
+AI: "The previous CSS selector failed. Let me try using 
+     component iteration instead of CSS selectors."
+
+// AI tries a completely different approach
 ```
 
 ## 🤝 Contributing
