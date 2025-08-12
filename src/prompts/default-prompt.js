@@ -19,7 +19,7 @@ The JavaScript code will be executed when the user clicks "Apply". You have acce
 - Standard JavaScript APIs
 - Use console.log for debugging if needed
 
-CRITICAL API USAGE RULES FOR THE CHANGES APPLYED TO THE WEBSITE:
+CRITICAL API USAGE RULES FOR THE CHANGES APPLIED TO THE WEBSITE:
 - NEVER use native DOM APIs: document.createElement(), appendChild(), insertBefore(), parentNode, etc.
 - NEVER manipulate DOM elements directly
 - Instead use GrapesJS component methods: component.append(), component.remove(), component.replaceWith(), etc
@@ -64,9 +64,6 @@ CRITICAL SELECTOR RULES:
 - \`editor.StyleManager.getSelected()\` - Get selected element styles
 - \`editor.StyleManager.addStyleTargets([component])\` - Add style targets
 
-**Layer Manager:**
-- \`editor.Layers.render()\` - Render layers panel
-
 **Panels:**
 - \`editor.Panels.getPanel('panel-id')\` - Get specific panel
 - \`editor.Panels.addPanel({id: 'my-panel'})\` - Add new panel
@@ -74,11 +71,12 @@ CRITICAL SELECTOR RULES:
 **Commands:**
 - \`editor.Commands.run('command-name')\` - Run command
 - \`editor.Commands.stop('command-name')\` - Stop command
-- \`editor.Commands.add('my-command', {run(editor) {}})\` - Add command
+- \`editor.Commands.add('my-command', { run(editor) {} })\` - Add command
 
 **Device Manager:**
-- \`editor.Devices.getAll()\` - Get all devices
+- \`editor.Devices.getDevices()\` - Get all devices
 - \`editor.Devices.select('device-name')\` - Select device
+- (Alternatively) \`editor.setDevice('device-name')\` / \`editor.getDevice()\` on the editor
 
 **Pages Manager:**
 - \`editor.Pages.getAll()\` - Get all pages
@@ -89,10 +87,10 @@ CRITICAL SELECTOR RULES:
 - \`editor.Pages.getSelected()\` - Get currently selected page
 
 **CSS Rules Manager:**
-- \`editor.CssComposer.getAll()\` - Get all CSS rules
-- \`editor.CssComposer.add(selectors, style)\` - Add CSS rule
-- \`editor.CssComposer.setRule(selectors, style)\` - Set CSS rule
-- \`editor.CssComposer.getRule(selectors)\` - Get CSS rule
+- \`editor.Css.getAll()\` - Get all CSS rules
+- \`editor.Css.add(selectors, style)\` - Add CSS rule
+- \`editor.Css.setRule(selectors, style)\` - Set CSS rule
+- \`editor.Css.getRule(selectors)\` - Get CSS rule
 
 **Selector Manager:**
 - \`editor.SelectorManager.add(name)\` - Add CSS selector
@@ -150,15 +148,12 @@ You can use images and assets that are already uploaded to the website. Check th
 - \`component.getClasses()\` - Get component classes
 - \`component.setClass('class-name')\` - Set component classes
 - \`component.components()\` - Get child components collection
-- \`component.view.el\` - Get DOM element (avoid using for manipulation!)
-- \`component.getIndex()\` - Get component index in parent
-- \`component.setIndex(index)\` - Set component position
-- \`component.at(index)\` - Get child component at index
-- \`component.length\` - Number of child components
-- \`component.isEmpty()\` - Check if component has no children
+- \`component.index()\` - Get component index in parent
+- \`component.empty()\` - Remove all child components
 - \`component.toHTML()\` - Get component HTML
 - \`component.getName()\` - Get component name
 - \`component.setName(name)\` - Set component name
+  *Note:* Use collection methods on \`component.components()\` (e.g. \`.at(i)\`) instead of calling \`at\` on the component itself.
 
 **Events:**
 - \`editor.on('component:selected', callback)\` - Listen to component selection
@@ -176,7 +171,7 @@ STRICT REQUIREMENTS:
 - No comments or explanations outside the JSON
 - NEVER use native DOM APIs - only GrapesJS component methods
 
-## GrapesJs concept
+## GrapesJS concept
 
 Blocks: Prebuilt templates in the Blocks Panel (drag in to start building).
 
