@@ -1,6 +1,6 @@
 // Prompt Manager for AI Copilot
 // Handles loading and templating of AI prompts
-import { defaultPrompt } from './prompts/default-prompt.js';
+import { defaultPrompt } from './prompts/default-prompt';
 
 export class PromptManager {
   constructor(options = {}) {
@@ -9,29 +9,29 @@ export class PromptManager {
     this.defaultPrompt = null;
     this.loadedPrompt = null;
   }
-  
+
   // Load the default prompt from the bundled file
   async loadDefaultPrompt() {
     if (this.defaultPrompt) return this.defaultPrompt;
-    
+
     // Use the statically imported prompt
     this.defaultPrompt = defaultPrompt;
     console.log('[AI Copilot] Loaded default prompt from module');
-    
+
     return this.defaultPrompt;
   }
-  
+
   // Get the active prompt (custom, URL, or default)
   async getPrompt() {
     if (this.loadedPrompt) return this.loadedPrompt;
-    
+
     // Priority: custom prompt > URL prompt > default prompt
     if (this.customPrompt) {
       this.loadedPrompt = this.customPrompt;
       console.log('[AI Copilot] Using custom prompt');
       return this.loadedPrompt;
     }
-    
+
     if (this.promptUrl) {
       try {
         const response = await fetch(this.promptUrl);
@@ -46,17 +46,17 @@ export class PromptManager {
         console.warn('[AI Copilot] Error loading prompt from URL:', error.message);
       }
     }
-    
+
     // Fallback to default
     this.loadedPrompt = await this.loadDefaultPrompt();
     console.log('[AI Copilot] Using default prompt');
     return this.loadedPrompt;
   }
-  
+
   // Process the prompt template with context data
   async processPrompt(context) {
     const template = await this.getPrompt();
-    
+
     return this.replaceTemplate(template, {
       currentHtml: context.currentHtml || '',
       currentCss: context.currentCss || '',
@@ -69,7 +69,7 @@ export class PromptManager {
       previousResponses: this.formatPreviousResponses(context.previousResponses || [])
     });
   }
-  
+
   // Simple template replacement
   replaceTemplate(template, variables) {
     let result = template;
@@ -79,30 +79,30 @@ export class PromptManager {
     }
     return result;
   }
-  
+
   // Format previous AI responses
   formatPreviousResponses(previousResponses) {
     if (!previousResponses || previousResponses.length === 0) return 'No previous responses';
-    
+
     return previousResponses.map((response, index) => {
       return `Response ${index + 1} (${response.timestamp}):\n${response.content}`;
     }).join('\n\n---\n\n');
   }
-  
+
   // Format states with HTML/CSS, AI responses, and console logs
   formatStates(states) {
     if (!states || states.length === 0) return 'No previous interaction states';
-    
+
     return states.map((state, index) => {
       const timestamp = new Date(state.timestamp).toLocaleTimeString();
-      
+
       let stateInfo = `State ${index + 1} (${timestamp}):\n`;
-      
+
       // User Request (if exists)
       if (state.userPrompt) {
         stateInfo += `User Request: "${state.userPrompt}"\n\n`;
       }
-      
+
       // HTML/CSS info (if available)
       if (state.html) {
         stateInfo += `HTML (${state.html.length} chars):\n${this.truncateText(state.html, 200)}\n\n`;
@@ -110,14 +110,14 @@ export class PromptManager {
       if (state.css) {
         stateInfo += `CSS (${state.css.length} chars):\n${this.truncateText(state.css, 200)}\n\n`;
       }
-      
+
       // AI Response
       if (state.aiResponse) {
         stateInfo += `AI Response:\n`;
         stateInfo += `- Explanation: ${this.truncateText(state.aiResponse.explanation, 150)}\n`;
         stateInfo += `- Code: ${this.truncateText(state.aiResponse.code, 100)}\n\n`;
       }
-      
+
       // Console logs and errors (critical for AI to fix issues!)
       if (state.consoleLogs && state.consoleLogs.length > 0) {
         stateInfo += `Console logs/errors (${state.consoleLogs.length} entries):\n`;
@@ -131,18 +131,18 @@ export class PromptManager {
         }
         stateInfo += `\n`;
       }
-      
+
       return stateInfo;
     }).join('\n---\n\n');
   }
-  
+
   // Truncate text to specified length
   truncateText(text, maxLength) {
     if (!text || text.length <= maxLength) return text || '';
     return text.substring(0, maxLength) + '...';
   }
-  
-  
+
+
   // Safely stringify objects avoiding circular references
   safeStringify(obj, maxDepth = 2, currentDepth = 0) {
     if (currentDepth >= maxDepth) return '[Max Depth Reached]';
@@ -150,9 +150,9 @@ export class PromptManager {
     if (obj === undefined) return 'undefined';
     if (typeof obj === 'string') return obj;
     if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
-    
+
     const seen = new WeakSet();
-    
+
     try {
       return JSON.stringify(obj, (key, value) => {
         if (typeof value === 'object' && value !== null) {
@@ -161,7 +161,7 @@ export class PromptManager {
           }
           seen.add(value);
         }
-        
+
         // Filter out functions and DOM elements
         if (typeof value === 'function') {
           return '[Function]';
@@ -169,15 +169,15 @@ export class PromptManager {
         if (value && value.nodeType) {
           return '[DOM Element]';
         }
-        
+
         return value;
       }, 2);
     } catch (error) {
       return `[Error serializing: ${error.message}]`;
     }
   }
-  
-  
+
+
   // Reload the prompt (useful for development)
   async reloadPrompt() {
     this.loadedPrompt = null;
