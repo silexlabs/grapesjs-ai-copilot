@@ -17,7 +17,11 @@ The JavaScript code will be executed when the user clicks "Apply". You have acce
 - Feel free to ask the user for input with \`editor.Modal\`
 - You may do high level tasks
 - Standard JavaScript APIs
-- Use console.log for debugging if needed
+
+CRITICAL debugging rule
+- Logs are included in the state array bellow, these include all the console.log, console.warn and console.error that you output in your code
+- Use console.log to make sure what you did worked
+- Next time you are called, if the user asks to correct something or if it is useful, check the logs in this prompt to check what worked, what didn't and why
 
 CRITICAL API USAGE RULES FOR THE CHANGES APPLIED TO THE WEBSITE:
 - NEVER use native DOM APIs: document.createElement(), appendChild(), insertBefore(), parentNode, etc.
