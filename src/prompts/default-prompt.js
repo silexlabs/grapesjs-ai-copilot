@@ -22,10 +22,9 @@ The JavaScript code will be executed when the user clicks "Apply". You have acce
 CRITICAL API USAGE RULES FOR THE CHANGES APPLYED TO THE WEBSITE:
 - NEVER use native DOM APIs: document.createElement(), appendChild(), insertBefore(), parentNode, etc.
 - NEVER manipulate DOM elements directly
-- ALWAYS use GrapesJS component methods: component.append(), component.remove(), component.replaceWith(), etc
+- Instead use GrapesJS component methods: component.append(), component.remove(), component.replaceWith(), etc
 - NEVER use editor.addComponents() with <style> tags
-- Use component.addStyle() for individual component styling
-- Use editor.addStyle() for global CSS rules like hover effects
+- Instead use component.addStyle() for individual component styling and editor.addStyle() for global CSS rules like hover effects
 - Use editor.getWrapper().find() to locate existing components
 - Use component.clone() to duplicate components
 - Use component.parent() to access parent component
@@ -47,13 +46,12 @@ CRITICAL SELECTOR RULES:
 - \`editor.getHtml()\` - Get current HTML
 - \`editor.setComponents(components)\` - Replace all components
 - \`editor.refresh()\` - Refresh canvas
-
-**Undo/Redo:**
-- \`editor.UndoManager.undo()\` - Undo last action
-- \`editor.UndoManager.redo()\` - Redo last undone action
-- \`editor.UndoManager.hasUndo()\` - Check if undo available
-- \`editor.UndoManager.hasRedo()\` - Check if redo available
-- \`editor.UndoManager.clear()\` - Clear undo/redo history
+- \`editor.getDirtyCount()\` - Get number of unsaved changes
+- \`editor.getProjectData()\` - Get full project data
+- \`editor.loadProjectData(data)\` - Load project data
+- \`editor.getConfig()\` - Get editor configuration
+- \`editor.runCommand(id, options)\` - Run a command
+- \`editor.stopCommand(id)\` - Stop a running command
 
 **Modal System:**
 - \`editor.Modal.open({title: 'Title', content: 'HTML content'})\` - Open modal
@@ -82,9 +80,48 @@ CRITICAL SELECTOR RULES:
 - \`editor.Devices.getAll()\` - Get all devices
 - \`editor.Devices.select('device-name')\` - Select device
 
+**Pages Manager:**
+- \`editor.Pages.getAll()\` - Get all pages
+- \`editor.Pages.add(pageProps)\` - Add new page
+- \`editor.Pages.get(id)\` - Get page by ID
+- \`editor.Pages.remove(page)\` - Remove page
+- \`editor.Pages.select(page)\` - Select/switch to page
+- \`editor.Pages.getSelected()\` - Get currently selected page
+
+**CSS Rules Manager:**
+- \`editor.CssComposer.getAll()\` - Get all CSS rules
+- \`editor.CssComposer.add(selectors, style)\` - Add CSS rule
+- \`editor.CssComposer.setRule(selectors, style)\` - Set CSS rule
+- \`editor.CssComposer.getRule(selectors)\` - Get CSS rule
+
+**Selector Manager:**
+- \`editor.SelectorManager.add(name)\` - Add CSS selector
+- \`editor.SelectorManager.get(name)\` - Get selector by name
+- \`editor.SelectorManager.getAll()\` - Get all selectors
+
 **Block Manager:**
 - \`editor.Blocks.add('block-id', {label: 'Block', content: '<div>Block</div>'})\` - Add block
 - \`editor.Blocks.get('block-id')\` - Get block
+- \`editor.Blocks.getAll()\` - Get all blocks
+- \`editor.Blocks.remove('block-id')\` - Remove block
+
+**Asset Manager:**
+- \`editor.Assets.add([{type: 'image', src: 'path/to/image.jpg'}])\` - Add assets
+- \`editor.Assets.get('asset-id')\` - Get asset by ID
+- \`editor.Assets.getAll()\` - Get all assets
+- \`editor.Assets.remove('asset-id')\` - Remove asset
+- \`editor.Assets.open()\` - Open asset manager modal
+- \`editor.Assets.close()\` - Close asset manager modal
+
+**IMPORTANT - Using Website Assets:**
+You can use images and assets that are already uploaded to the website. Check the "Project Data" section below - it includes an "assets" array with all available images and files. When creating image components or setting background images, prefer using these existing assets over external URLs. Use the asset 'src' property directly in your code.
+
+**Canvas:**
+- \`editor.Canvas.getDocument()\` - Get canvas document
+- \`editor.Canvas.getWindow()\` - Get canvas window
+- \`editor.Canvas.getBody()\` - Get canvas body element
+- \`editor.Canvas.getFrameEl()\` - Get canvas frame element
+- \`editor.Canvas.setCustomBadgeLabel('Custom Label')\` - Set custom badge label
 
 **Component Methods:**
 - \`component.append(components)\` - Add child components
@@ -114,6 +151,14 @@ CRITICAL SELECTOR RULES:
 - \`component.setClass('class-name')\` - Set component classes
 - \`component.components()\` - Get child components collection
 - \`component.view.el\` - Get DOM element (avoid using for manipulation!)
+- \`component.getIndex()\` - Get component index in parent
+- \`component.setIndex(index)\` - Set component position
+- \`component.at(index)\` - Get child component at index
+- \`component.length\` - Number of child components
+- \`component.isEmpty()\` - Check if component has no children
+- \`component.toHTML()\` - Get component HTML
+- \`component.getName()\` - Get component name
+- \`component.setName(name)\` - Set component name
 
 **Events:**
 - \`editor.on('component:selected', callback)\` - Listen to component selection
@@ -140,12 +185,6 @@ Components: The editable objects inside the canvas (GrapesJS's internal DOM).
 Elements: The actual HTML tags (<div>, <p>, etc.) produced by components.
 
 ## Current website state:
-
-HTML:
-{{currentHtml}}
-
-CSS:
-{{currentCss}}
 
 Project Data:
 {{projectData}}

@@ -71,9 +71,30 @@ class AISuggestionComponent extends LitElement {
 
   renderError() {
     return html`
-      <div style="display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center;" class="gjs-danger">
-        Connection Error<br>
-        <small>${this.error}</small>
+      <div style="padding: 8px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; flex-direction: column; padding: 12px; text-align: center; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 4px;">
+          <div style="font-weight: bold; color: #c53030; margin-bottom: 4px;">Connection Error</div>
+          <small style="color: #744d47;">${this.error}</small>
+        </div>
+
+        <div class="gjs-field">
+          <input
+            type="text"
+            placeholder="Try asking AI again... (e.g. 'make the header red')"
+            .value=${this.userPrompt}
+            @input=${this.handlePromptInput}
+            @keydown=${this.handlePromptKeydown}
+          />
+        </div>
+
+        <div style="display: flex; gap: 4px; align-items: center;">
+          <button class="gjs-btn-prim" @click=${this.handleUserPrompt} ?disabled=${this.loading || !this.userPrompt.trim()}>
+            ${this.loading ? 'Asking...' : 'Ask AI'}
+          </button>
+          <button class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto;">
+            ↻
+          </button>
+        </div>
       </div>
     `;
   }

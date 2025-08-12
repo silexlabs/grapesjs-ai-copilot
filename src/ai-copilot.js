@@ -50,6 +50,7 @@ class AICopilot {
     this.userFeedback = []; // Store user feedback
     this.isLoading = false; // Loading state
     this.isAnalyzing = false; // Flag to prevent concurrent analysis
+    this.isProcessingUserPrompt = false; // Flag to prevent analysis during user prompt processing
     this.userActions = []; // Store semantic user actions as they happen
     this.promptManager = new PromptManager({
       customPrompt: this.options.customPrompt,
@@ -194,6 +195,12 @@ class AICopilot {
 
   // Check if we should run analysis
   shouldRunAnalysis() {
+    // Don't run analysis if user prompt is being processed
+    if (this.isProcessingUserPrompt) {
+      console.log('[AI Copilot] Skipping analysis - user prompt being processed');
+      return false;
+    }
+
     if (this.changeCount < this.options.minChangesThreshold) {
       return false;
     }
@@ -342,8 +349,6 @@ class AICopilot {
         suggestion: suggestion,
         explanation: suggestion.explanation,
         code: suggestion.code,
-        htmlSnapshot: context.currentHtml, // Store actual HTML at time of response
-        cssSnapshot: context.currentCss,   // Store actual CSS at time of response
         feedback: null // Will be populated when user provides feedback
       };
 
@@ -558,26 +563,35 @@ class AICopilot {
 
   // Gather context information with states
   gatherContext() {
-    const currentHtml = this.editor.getHtml();
-    const currentCss = this.editor.getCss();
-    const projectData = this.editor.getProjectData();
+    // Get only current page HTML/CSS but truncate to save tokens
+    const fullHtml = this.editor.getHtml();
+    const fullCss = this.editor.getCss();
 
-    // Build states array from response history
+    // Get project data but exclude HTML/CSS to save tokens
+    const fullProjectData = this.editor.getProjectData();
+    const { assets, ...projectDataWithoutAssets } = fullProjectData;
+    const projectData = JSON.stringify({
+      ...projectDataWithoutAssets,
+      // Remove the base64 image data
+      assets: assets.map(asset => ({
+        ...asset,
+        src: asset.src.startsWith('data') ? asset.src.substring(0, 30) : asset.src,
+      })),
+    }, null, 2);
+
+    // Build states array from response history - only 1 most recent interaction
     const states = this.responseHistory.slice(0, 5).map(response => ({
       timestamp: response.timestamp,
-      html: response.htmlSnapshot || response.context?.currentHtml || '',
-      css: response.cssSnapshot || response.context?.currentCss || '',
       userPrompt: response.userPrompt || null,
       aiResponse: {
         explanation: response.explanation,
-        code: response.code
+        code: response.code,
       },
-      consoleLogs: this.getConsoleLogs(response.timestamp)
+      // Include console logs for error fixing - this is critical!
+      consoleLogs: this.getConsoleLogs(response.timestamp).slice(0, 5)
     }));
 
     return {
-      currentHtml,
-      currentCss,
       projectData,
       states
     };
@@ -768,7 +782,8 @@ class AICopilot {
   async handleUserPrompt(userPrompt) {
     console.log('[AI Copilot] User prompt:', userPrompt);
 
-    // Set loading state
+    // Set flags to prevent analysis interference
+    this.isProcessingUserPrompt = true;
     this.setLoading(true);
 
     try {
@@ -793,8 +808,6 @@ class AICopilot {
         suggestion: suggestion,
         explanation: suggestion.explanation,
         code: suggestion.code,
-        htmlSnapshot: context.currentHtml,
-        cssSnapshot: context.currentCss,
         userPrompt: userPrompt, // Store the user prompt
         feedback: null
       };
@@ -814,6 +827,9 @@ class AICopilot {
       this.setLoading(false);
       this.logError('AI user prompt analysis failed', error);
       this.setComponentError(error.message);
+    } finally {
+      // Always clear the user prompt processing flag
+      this.isProcessingUserPrompt = false;
     }
   }
 
@@ -871,6 +887,11 @@ class AICopilot {
 
     const cutPoint = lastTag > lastSpace ? lastTag : lastSpace;
     return cutPoint > 0 ? truncated.substring(0, cutPoint) + '...' : truncated + '...';
+  }
+
+  truncateText(text, maxLength) {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   }
 
   // Escape HTML for safe display

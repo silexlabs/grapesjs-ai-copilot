@@ -103,9 +103,13 @@ export class PromptManager {
         stateInfo += `User Request: "${state.userPrompt}"\n\n`;
       }
       
-      // HTML/CSS info
-      stateInfo += `HTML (${state.html.length} chars):\n${this.truncateText(state.html, 200)}\n\n`;
-      stateInfo += `CSS (${state.css.length} chars):\n${this.truncateText(state.css, 200)}\n\n`;
+      // HTML/CSS info (if available)
+      if (state.html) {
+        stateInfo += `HTML (${state.html.length} chars):\n${this.truncateText(state.html, 200)}\n\n`;
+      }
+      if (state.css) {
+        stateInfo += `CSS (${state.css.length} chars):\n${this.truncateText(state.css, 200)}\n\n`;
+      }
       
       // AI Response
       if (state.aiResponse) {
@@ -114,19 +118,18 @@ export class PromptManager {
         stateInfo += `- Code: ${this.truncateText(state.aiResponse.code, 100)}\n\n`;
       }
       
-      // Console logs
+      // Console logs and errors (critical for AI to fix issues!)
       if (state.consoleLogs && state.consoleLogs.length > 0) {
-        stateInfo += `Console logs (${state.consoleLogs.length} entries):\n`;
+        stateInfo += `Console logs/errors (${state.consoleLogs.length} entries):\n`;
         state.consoleLogs.slice(0, 5).forEach(log => {
           const level = (log.level || 'log').toUpperCase();
-          const message = this.truncateText(log.message || String(log), 80);
+          const message = this.truncateText(log.message || String(log), 100);
           stateInfo += `[${level}] ${message}\n`;
         });
         if (state.consoleLogs.length > 5) {
           stateInfo += `... and ${state.consoleLogs.length - 5} more log entries\n`;
         }
-      } else {
-        stateInfo += 'Console logs: No logs\n';
+        stateInfo += `\n`;
       }
       
       return stateInfo;
