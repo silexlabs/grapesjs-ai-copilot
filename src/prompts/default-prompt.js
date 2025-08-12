@@ -28,9 +28,12 @@ CRITICAL API USAGE RULES FOR THE CHANGES APPLIED TO THE WEBSITE:
 - Use editor.getWrapper().find() to locate existing components
 - Use component.clone() to duplicate components
 - Use component.parent() to access parent component
+- **BEFORE any style changes**: Always select the appropriate device with \`editor.Devices.select('device-name')\`. Use the first device from the "Available devices" list for styles that should apply to all screen sizes, or choose a specific device if the user requests responsive/mobile-specific changes
 
 CRITICAL SELECTOR RULES:
 - NEVER use invalid CSS selector syntax
+- double check that you are not using double # like \`##my-class\`
+- **ALWAYS start style changes with device selection**: Use \`editor.Devices.select('device-name')\` with the exact device name from the "Available devices" list before editing styles. The first device typically applies to all screen sizes, others create responsive breakpoints
 
 ## GrapesJS API Quick Reference:
 
@@ -76,6 +79,32 @@ CRITICAL SELECTOR RULES:
 - \`editor.Devices.getDevices()\` - Get all devices
 - \`editor.Devices.select('device-name')\` - Select device
 - (Alternatively) \`editor.setDevice('device-name')\` / \`editor.getDevice()\` on the editor
+
+**CRITICAL - Device Selection Required Before ALL Styling**
+You MUST call \`editor.Devices.select('device-name')\` before EVERY style operation (\`addStyle\`, \`setStyle\`, etc.). This is mandatory for proper responsive design.
+
+**Use the EXACT device names from the "Available devices" list in the UI State section above.** The first device (usually the largest) applies styles to all screen sizes with no media query. Other devices apply styles to that device width and smaller screens (generates @media queries).
+
+**Example pattern:**
+\`\`\`javascript
+// ALWAYS start with device selection - use actual device name from the list above
+editor.Devices.select('Desktop'); // Replace 'Desktop' with the actual first device name
+// Then apply styles
+editor.getWrapper().find('h2, p, a').forEach(comp => {
+  const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+  comp.addStyle({ color: randomColor });
+});
+\`\`\`
+
+**Device behavior:**
+- First/largest device = styles apply to ALL screen sizes (no media query)
+- Other devices = styles apply to that device width and smaller (generates @media query)
+A device has:
+* \`name\`: Device type, eg. Mobile
+* \`width\`: Width to set for the editor iframe, eg. '900px'
+* \`height\`: Height to set for the editor iframe, eg. '600px'
+* \`widthMedia\`: The width which will be used in media queries, If empty the width will be used
+* \`priority\`: Setup the order of media queries
 
 **Pages Manager:**
 - \`editor.Pages.getAll()\` - Get all pages

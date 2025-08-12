@@ -178,6 +178,11 @@ class AICopilot {
     this.suggestionComponent.addEventListener('user-prompt', (event) => {
       this.handleUserPrompt(event.detail.prompt);
     });
+
+    // Listen for stop requests
+    this.suggestionComponent.addEventListener('stop-request', () => {
+      this.handleStopRequest();
+    });
   }
 
 
@@ -330,13 +335,20 @@ class AICopilot {
 
     try {
       this.isAnalyzing = true;
-      // Set loading state
+      // Clear any previous error state and reset technical details
+      if (this.suggestionComponent) {
+        this.suggestionComponent.setError(null);
+      }
+      // Reset technical details for this analysis session
+      if (this.aiProvider) {
+        this.aiProvider.resetTechnicalDetails();
+      }
       this.setLoading(true);
 
       const context = this.gatherContext();
       const prompt = await this.buildAnalysisPrompt(context);
 
-      const aiResponse = await this.aiProvider.generateResponse(prompt);
+      const aiResponse = await this.aiProvider.generateResponseWithRetry(prompt, context, 4);
 
       // Parse JSON response from AI
       const suggestion = this.parseAISuggestion(aiResponse);
@@ -359,6 +371,11 @@ class AICopilot {
 
       this.updateComponentSuggestion(suggestion);
 
+      // Update technical details in component
+      if (this.suggestionComponent) {
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
+
       // Reset change counter and update snapshot
       this.changeCount = 0;
       this.lastSnapshot = this.createContentSnapshot();
@@ -371,6 +388,11 @@ class AICopilot {
       this.setLoading(false);
       this.logError('AI analysis failed', error);
       this.setComponentError(error.message);
+      
+      // Update technical details even on error
+      if (this.suggestionComponent) {
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
     } finally {
       // Always clear the analyzing flag
       this.isAnalyzing = false;
@@ -665,8 +687,12 @@ class AICopilot {
         : 'unknown';
       const currentSelector = this.getCurrentCSSSelector();
 
+      // Get list of available devices
+      const availableDevices = this.getAvailableDevices();
+
       return `
-Device: ${device}
+Current device: ${device}
+Available devices: ${availableDevices.join(', ')}
 Visible panels: ${uiState.panels.join(', ') || 'none'}
 Current page: ${selectedPage}
 CSS selector: ${currentSelector}
@@ -679,6 +705,26 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
 `;
     } catch (error) {
       return "Error retrieving UI state";
+    }
+  }
+
+  // Get available devices
+  getAvailableDevices() {
+    try {
+      const devices = this.editor.Devices;
+      if (!devices) return ['desktop'];
+
+      const deviceList = devices.getAll();
+      return deviceList.map(device => {
+        const id = device.get('id') || device.id;
+        const name = device.get('name') || id;
+        const width = device.get('width');
+        const widthStr = width ? ` (${width}px)` : '';
+        return `${name}${widthStr}`;
+      });
+    } catch (error) {
+      console.warn('[AI Copilot] Error getting available devices:', error);
+      return ['desktop'];
     }
   }
 
@@ -886,6 +932,10 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
 
   // Force analysis (for manual triggers)
   async forceAnalysis() {
+    // Reset technical details for fresh analysis
+    if (this.aiProvider) {
+      this.aiProvider.resetTechnicalDetails();
+    }
     // Reset change count to ensure analysis runs even if threshold not met
     this.changeCount = this.options.minChangesThreshold;
     await this.analyzeCurrentState();
@@ -898,6 +948,14 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
 
     // Set flags to prevent analysis interference
     this.isProcessingUserPrompt = true;
+    // Clear any previous error state and reset technical details
+    if (this.suggestionComponent) {
+      this.suggestionComponent.setError(null);
+    }
+    // Reset technical details for this user prompt session
+    if (this.aiProvider) {
+      this.aiProvider.resetTechnicalDetails();
+    }
     this.setLoading(true);
 
     try {
@@ -909,7 +967,7 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
       // Log what's being sent to the AI model
       console.log('[AI Copilot] User-initiated request:', {context, prompt});
 
-      const aiResponse = await this.aiProvider.generateResponse(prompt);
+      const aiResponse = await this.aiProvider.generateResponseWithRetry(prompt, context, 4);
 
       // Parse JSON response from AI
       const suggestion = this.parseAISuggestion(aiResponse);
@@ -934,6 +992,11 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
       this.updateComponentSuggestion(suggestion, true);
       this.analysisHistory.push(responseEntry);
 
+      // Update technical details in component
+      if (this.suggestionComponent) {
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
+
       // Clear loading state
       this.setLoading(false);
 
@@ -941,6 +1004,11 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
       this.setLoading(false);
       this.logError('AI user prompt analysis failed', error);
       this.setComponentError(error.message);
+      
+      // Update technical details even on error
+      if (this.suggestionComponent) {
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
     } finally {
       // Always clear the user prompt processing flag
       this.isProcessingUserPrompt = false;
@@ -1038,6 +1106,44 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
   clearResponseHistory() {
     this.responseHistory = [];
     console.log('[AI Copilot] Response history cleared');
+  }
+
+  // Get technical details for debugging and monitoring
+  getTechnicalDetails() {
+    return this.aiProvider ? this.aiProvider.getTechnicalDetails() : null;
+  }
+
+  // Reset technical details (useful for testing or fresh start)
+  resetTechnicalDetails() {
+    if (this.aiProvider) {
+      this.aiProvider.resetTechnicalDetails();
+      if (this.suggestionComponent) {
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
+    }
+  }
+
+  // Handle stop request from UI
+  handleStopRequest() {
+    console.log('[AI Copilot] Stop request received');
+    
+    if (this.aiProvider && this.aiProvider.hasActiveRequest()) {
+      this.aiProvider.abortCurrentRequest();
+      console.log('[AI Copilot] Aborted active AI request');
+      
+      // Clear loading states
+      this.setLoading(false);
+      this.isAnalyzing = false;
+      this.isProcessingUserPrompt = false;
+      
+      // Update component with cancellation message
+      if (this.suggestionComponent) {
+        this.suggestionComponent.setError('Request cancelled by user');
+        this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
+      }
+    } else {
+      console.log('[AI Copilot] No active request to stop');
+    }
   }
 
 }

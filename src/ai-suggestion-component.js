@@ -12,7 +12,8 @@ class AISuggestionComponent extends LitElement {
     userPrompt: { type: String },
     promptHistory: { type: Array },
     historyIndex: { type: Number },
-    isUserPromptResult: { type: Boolean }
+    isUserPromptResult: { type: Boolean },
+    technicalDetails: { type: Object }
   };
 
   // No shadow DOM styles - inherit from GrapesJS
@@ -36,6 +37,7 @@ class AISuggestionComponent extends LitElement {
     this.promptHistory = [];
     this.historyIndex = -1;
     this.isUserPromptResult = false;
+    this.technicalDetails = null;
   }
 
   render() {
@@ -64,7 +66,12 @@ class AISuggestionComponent extends LitElement {
       </style>
       <div style="display: flex; align-items: center; justify-content: center; padding: 20px; flex-direction: column; gap: 8px;">
         <div style="width: 14px; height: 14px; border: 2px solid #ddd; border-top: 2px solid #4a90a4; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <div class="gjs-sm-label">Analyzing...</div>
+        <div class="gjs-sm-label">
+          Analyzing...
+          <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
+            Stop
+          </span>
+        </div>
       </div>
     `;
   }
@@ -91,6 +98,11 @@ class AISuggestionComponent extends LitElement {
           <button class="gjs-btn-prim" @click=${this.handleUserPrompt} ?disabled=${this.loading || !this.userPrompt.trim()}>
             ${this.loading ? 'Asking...' : 'Ask AI'}
           </button>
+          ${this.loading ? html`
+            <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
+              Stop
+            </span>
+          ` : ''}
           <button class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto;">
             ↻
           </button>
@@ -120,6 +132,11 @@ class AISuggestionComponent extends LitElement {
           <button class="gjs-btn-prim" @click=${this.handleUserPrompt} ?disabled=${this.loading || !this.userPrompt.trim()}>
             ${this.loading ? 'Asking...' : 'Ask AI'}
           </button>
+          ${this.loading ? html`
+            <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
+              Stop
+            </span>
+          ` : ''}
         </div>
       </div>
     `;
@@ -128,13 +145,30 @@ class AISuggestionComponent extends LitElement {
   renderSuggestion() {
     return html`
       <div style="padding: 8px; display: flex; flex-direction: column; gap: 8px;">
-        ${this.isUserPromptResult ? html`
-          <div style="font-size: 10px; color: #666; margin-bottom: 4px;">
-            ✅ Executed your request
+        ${this.technicalDetails ? html`
+          <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 12px;">
+              ${this.isUserPromptResult ?
+                (this.technicalDetails.errors && this.technicalDetails.errors.length > 0 ? '❌' : '✅')
+                : '💡'}
+            </span>
+            ${this.technicalDetails.totalRetries > 0 ? html`
+              <span class="gjs-badge gjs-badge-warning" style="font-size: 9px; display: initial; position: initial;">
+                🔄 ${this.technicalDetails.totalRetries} ${this.technicalDetails.totalRetries === 1 ? 'retry' : 'retries'}
+              </span>
+            ` : ''}
+            <span class="gjs-badge" style="font-size: 9px; display: initial; position: initial;">
+              🪙 ${this.technicalDetails.totalTokensUsed} tokens
+            </span>
+            ${this.technicalDetails.errors && this.technicalDetails.errors.length > 0 ? html`
+              <span class="gjs-badge gjs-badge-danger" style="font-size: 9px; display: initial; position: initial;" title="${this.technicalDetails.errors[0]?.error || 'Error occurred'}">
+                ⚠️ ${this.technicalDetails.errors.length} errors
+              </span>
+            ` : ''}
           </div>
         ` : html`
           <div style="font-size: 10px; color: #666; margin-bottom: 4px;">
-            💡 AI Suggestion
+            ${this.isUserPromptResult ? '✅ Executed your request' : '💡 AI Suggestion'}
           </div>
         `}
 
@@ -180,6 +214,11 @@ class AISuggestionComponent extends LitElement {
           <button class="gjs-btn-prim" @click=${this.handleUserPrompt} ?disabled=${this.loading || !this.userPrompt.trim()}>
             ${this.loading ? 'Asking...' : 'Ask AI'}
           </button>
+          ${this.loading ? html`
+            <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
+              Stop
+            </span>
+          ` : ''}
         </div>
       </div>
     `;
@@ -189,6 +228,7 @@ class AISuggestionComponent extends LitElement {
     this.showCode = !this.showCode;
     this.requestUpdate(); // Force update to ensure reactive property change is detected
   }
+
 
   handleApply() {
     if (!this.suggestion || !this.editor) return;
@@ -237,6 +277,13 @@ class AISuggestionComponent extends LitElement {
   handleRefresh() {
     // Dispatch refresh event
     this.dispatchEvent(new CustomEvent('refresh-request', {
+      bubbles: true
+    }));
+  }
+
+  handleStop() {
+    // Dispatch stop event
+    this.dispatchEvent(new CustomEvent('stop-request', {
       bubbles: true
     }));
   }
@@ -363,6 +410,12 @@ class AISuggestionComponent extends LitElement {
   // Method to set error state
   setError(error) {
     this.error = error;
+  }
+
+  // Method to update technical details
+  updateTechnicalDetails(details) {
+    this.technicalDetails = details;
+    this.requestUpdate();
   }
 }
 
