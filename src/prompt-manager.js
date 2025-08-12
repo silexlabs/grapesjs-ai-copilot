@@ -1,5 +1,6 @@
 // Prompt Manager for AI Copilot
 // Handles loading and templating of AI prompts
+import { defaultPrompt } from './prompts/default-prompt.js';
 
 export class PromptManager {
   constructor(options = {}) {
@@ -13,8 +14,7 @@ export class PromptManager {
   async loadDefaultPrompt() {
     if (this.defaultPrompt) return this.defaultPrompt;
     
-    // Import the prompt as a JavaScript module
-    const { defaultPrompt } = await import('./prompts/default-prompt.js');
+    // Use the statically imported prompt
     this.defaultPrompt = defaultPrompt;
     console.log('[AI Copilot] Loaded default prompt from module');
     
