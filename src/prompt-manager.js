@@ -2,6 +2,8 @@
 // Handles loading and templating of AI prompts
 import { defaultPrompt } from './prompts/default-prompt';
 
+const MAX_LOGS = 100
+
 export class PromptManager {
   constructor(options = {}) {
     this.customPrompt = options.customPrompt;
@@ -116,20 +118,20 @@ export class PromptManager {
       // AI Response
       if (state.aiResponse) {
         stateInfo += `AI Response:\n`;
-        stateInfo += `- Explanation: ${this.truncateText(state.aiResponse.explanation, 150)}\n`;
+        stateInfo += `- Explanation: ${this.truncateText(state.aiResponse.explanation, 200)}\n`;
         stateInfo += `- Code: ${this.truncateText(state.aiResponse.code, 100)}\n\n`;
       }
 
       // Console logs and errors (critical for AI to fix issues!)
       if (state.consoleLogs && state.consoleLogs.length > 0) {
         stateInfo += `Console logs/errors (${state.consoleLogs.length} entries):\n`;
-        state.consoleLogs.slice(0, 5).forEach(log => {
+        state.consoleLogs.slice(0, MAX_LOGS).forEach(log => {
           const level = (log.level || 'log').toUpperCase();
-          const message = this.truncateText(log.message || String(log), 100);
+          const message = this.truncateText(log.message || String(log), 200);
           stateInfo += `[${level}] ${message}\n`;
         });
-        if (state.consoleLogs.length > 5) {
-          stateInfo += `... and ${state.consoleLogs.length - 5} more log entries\n`;
+        if (state.consoleLogs.length > MAX_LOGS) {
+          stateInfo += `... and ${state.consoleLogs.length - MAX_LOGS} more log entries\n`;
         }
         stateInfo += `\n`;
       }

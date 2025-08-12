@@ -129,15 +129,15 @@ class AICopilot {
 
   // Setup event listeners to track changes
   setupEventListeners() {
-    // Track component changes
-    this.editor.on('component:add component:remove component:update', () => {
-      this.changeCount++;
-    });
+    // // Track component changes
+    // this.editor.on('component:add component:remove component:update', () => {
+    //   this.changeCount++;
+    // });
 
-    // Track style changes
-    this.editor.on('styleable:change', () => {
-      this.changeCount++;
-    });
+    // // Track style changes
+    // this.editor.on('styleable:change', () => {
+    //   this.changeCount++;
+    // });
   }
 
   // Setup event listeners for the web component
@@ -182,6 +182,11 @@ class AICopilot {
     // Listen for stop requests
     this.suggestionComponent.addEventListener('stop-request', () => {
       this.handleStopRequest();
+    });
+
+    // Listen for "didn't work" requests
+    this.suggestionComponent.addEventListener('didnt-work', (event) => {
+      this.handleDidntWorkRequest(event.detail);
     });
   }
 
@@ -369,7 +374,7 @@ class AICopilot {
         this.responseHistory = this.responseHistory.slice(0, 10); // Keep only last 10
       }
 
-      this.updateComponentSuggestion(suggestion);
+      this.updateComponentSuggestion(suggestion, false);
 
       // Update technical details in component
       if (this.suggestionComponent) {
@@ -388,7 +393,7 @@ class AICopilot {
       this.setLoading(false);
       this.logError('AI analysis failed', error);
       this.setComponentError(error.message);
-      
+
       // Update technical details even on error
       if (this.suggestionComponent) {
         this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
@@ -607,16 +612,12 @@ class AICopilot {
     // Get UI state information
     const uiState = this.getUIStateInfo();
 
-    // Build states array from response history - only 1 most recent interaction
-    const states = this.responseHistory.slice(0, 5).map(response => ({
+    // Build states array from response history - only completed actions, no user prompts to avoid confusion
+    const states = this.responseHistory.slice(0, 3).map(response => ({
       timestamp: response.timestamp,
-      userPrompt: response.userPrompt || null,
-      aiResponse: {
-        explanation: response.explanation,
-        code: response.code,
-      },
-      // Include console logs for error fixing - this is critical!
-      consoleLogs: this.getConsoleLogs(response.timestamp).slice(0, 5)
+      actionCompleted: response.explanation,
+      wasSuccessful: !response.hadErrors,
+      wasUserInitiated: !!response.userPrompt
     }));
 
     return {
@@ -645,7 +646,7 @@ class AICopilot {
     try {
       const modal = this.editor.Modal;
       const isModalOpen = modal.isOpen();
-      
+
       return {
         modal: {
           isOpen: isModalOpen,
@@ -715,13 +716,7 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
       if (!devices) return ['desktop'];
 
       const deviceList = devices.getAll();
-      return deviceList.map(device => {
-        const id = device.get('id') || device.id;
-        const name = device.get('name') || id;
-        const width = device.get('width');
-        const widthStr = width ? ` (${width}px)` : '';
-        return `${name}${widthStr}`;
-      });
+      return deviceList.map(device => JSON.stringify(device));
     } catch (error) {
       console.warn('[AI Copilot] Error getting available devices:', error);
       return ['desktop'];
@@ -1004,7 +999,7 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
       this.setLoading(false);
       this.logError('AI user prompt analysis failed', error);
       this.setComponentError(error.message);
-      
+
       // Update technical details even on error
       if (this.suggestionComponent) {
         this.suggestionComponent.updateTechnicalDetails(this.aiProvider.getTechnicalDetails());
@@ -1126,16 +1121,16 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
   // Handle stop request from UI
   handleStopRequest() {
     console.log('[AI Copilot] Stop request received');
-    
+
     if (this.aiProvider && this.aiProvider.hasActiveRequest()) {
       this.aiProvider.abortCurrentRequest();
       console.log('[AI Copilot] Aborted active AI request');
-      
+
       // Clear loading states
       this.setLoading(false);
       this.isAnalyzing = false;
       this.isProcessingUserPrompt = false;
-      
+
       // Update component with cancellation message
       if (this.suggestionComponent) {
         this.suggestionComponent.setError('Request cancelled by user');
@@ -1144,6 +1139,27 @@ Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
     } else {
       console.log('[AI Copilot] No active request to stop');
     }
+  }
+
+  // Handle "didn't work" request from UI
+  async handleDidntWorkRequest(failedSuggestion) {
+    console.log('[AI Copilot] "Didn\'t work" request received');
+
+    // Get recent console logs - only errors and key debug info
+    const recentLogs = this.getConsoleLogs(Date.now() - 15000) // Last 15 seconds only
+      .filter(log => log.level === 'error' || log.message.includes('✅') || log.message.includes('❌'))
+      .slice(-10) // Only last 10 relevant logs
+      .map(log => `${log.level.toUpperCase()}: ${log.message.substring(0, 100)}`)
+      .join('\n');
+
+    // Create a simplified failure prompt
+    const failurePrompt = `The previous attempt didn't work as expected. 
+
+Recent logs: ${recentLogs || 'No errors logged'}
+
+Please try a different approach to solve the original task.`;
+
+    await this.handleUserPrompt(failurePrompt);
   }
 
 }

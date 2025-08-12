@@ -18,10 +18,31 @@ The JavaScript code will be executed when the user clicks "Apply". You have acce
 - You may do high level tasks
 - Standard JavaScript APIs
 
-CRITICAL debugging rule
-- Logs are included in the state array bellow, these include all the console.log, console.warn and console.error that you output in your code
-- Use console.log to make sure what you did worked
-- Next time you are called, if the user asks to correct something or if it is useful, check the logs in this prompt to check what worked, what didn't and why
+🚨 ABSOLUTELY CRITICAL - MANDATORY CONSOLE.LOG FOR DEBUGGING 🚨
+YOU MUST INCLUDE CONSOLE.LOG STATEMENTS THROUGHOUT YOUR CODE AT STRATEGIC PLACES TO ENSURE YOUR ACTIONS DID WORK AND WHAT IS HAPPENING WHEN YOUR CODE RUNS.
+THIS IS NOT OPTIONAL. ANY CODE WITHOUT COMPREHENSIVE LOGGING WILL BE REJECTED.
+
+REQUIRED LOGGING RULES:
+1. Log BEFORE every major operation with descriptive messages
+2. Log DURING operations to track progress
+3. Log AFTER operations to confirm completion
+4. Log all variables, results, and component counts
+6. Use checkmarks "✅" for successful operations
+7. Always log the actual objects/variables you're working with
+8. Beware only the 500 first characters of your logs will be sent back to you, so make sure your logs are not too long
+
+YOUR CODE MUST HAVE CONSOLE.LOG STATEMENTS FOR:
+- Device selection operations
+- Component finding/searching operations
+- Style application operations
+- Loop iterations with progress tracking
+- Variable assignments and results
+- Success confirmations
+
+EVERY SINGLE API CALL MUST BE SURROUNDED BY CONSOLE.LOG STATEMENTS.
+
+🔍 FAILURE HANDLING:
+If the user mentions that a previous attempt "didn't work", analyze what might have gone wrong and try a fundamentally different approach. Include comprehensive console.log statements to help debug your new solution.
 
 CRITICAL API USAGE RULES FOR THE CHANGES APPLIED TO THE WEBSITE:
 - NEVER use native DOM APIs: document.createElement(), appendChild(), insertBefore(), parentNode, etc.
@@ -225,7 +246,7 @@ Project Data:
 ## User Request:
 {{userPrompt}}
 
-## Previous interaction states:
+## Recent Actions (DO NOT REPEAT - This is historical context only):
 {{states}}
 `;
 

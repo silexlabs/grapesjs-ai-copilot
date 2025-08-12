@@ -77,7 +77,7 @@ class AISuggestionComponent extends LitElement {
   }
 
   renderError() {
-    return html`
+      return html`
       <div style="padding: 8px; display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; flex-direction: column; padding: 12px; text-align: center; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 4px;">
           <div style="font-weight: bold; color: #c53030; margin-bottom: 4px;">Connection Error</div>
@@ -102,10 +102,11 @@ class AISuggestionComponent extends LitElement {
             <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
               Stop
             </span>
-          ` : ''}
-          <button class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto;">
-            ↻
-          </button>
+          ` : html`
+          <span class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto; cursor: pointer; text-decoration: underline;">
+            Suggest
+          </span>
+          `}
         </div>
       </div>
     `;
@@ -114,10 +115,6 @@ class AISuggestionComponent extends LitElement {
   renderWelcome() {
     return html`
       <div style="padding: 8px; display: flex; flex-direction: column; gap: 8px;">
-        <div style="display: flex; align-items: center; justify-content: center; padding: 10px; text-align: center;" class="gjs-sm-label">
-          <small>Start editing to see suggestions</small>
-        </div>
-
         <div class="gjs-field">
           <input
             type="text"
@@ -136,7 +133,11 @@ class AISuggestionComponent extends LitElement {
             <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
               Stop
             </span>
-          ` : ''}
+          ` : html`
+              <span class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto; cursor: pointer; text-decoration: underline;">
+                Suggest
+              </span>
+            `}
         </div>
       </div>
     `;
@@ -184,12 +185,12 @@ class AISuggestionComponent extends LitElement {
               ${this.loading ? 'Applying...' : 'Apply'}
             </button>
           ` : ''}
-          <span class="gjs-field-info" @click=${this.toggleCodePreview} style="cursor: pointer; text-decoration: underline;">
+         <span class="gjs-field-info" @click=${this.handleDidntWork} style="cursor: pointer; text-decoration: underline; color: #c53030;">
+           Didn't work
+         </span>
+         <span class="gjs-field-info" @click=${this.toggleCodePreview} style="margin-left: auto; cursor: pointer; text-decoration: underline;">
             ${this.showCode ? 'Hide code' : 'Show code'}
           </span>
-          <button class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto;">
-            ↻
-          </button>
         </div>
 
         <div class="gjs-field-code" style="max-height: 500px; text-align: left; overflow-y: auto; white-space: pre-wrap; font-size: 10px; ${this.showCode ? 'display: block;' : 'display: none;'}">
@@ -218,7 +219,11 @@ class AISuggestionComponent extends LitElement {
             <span class="gjs-field-info" @click=${this.handleStop} style="cursor: pointer; text-decoration: underline; margin-left: 8px;">
               Stop
             </span>
-          ` : ''}
+          ` : html`
+          <span class="gjs-btn gjs-btn-sm" @click=${this.handleRefresh} ?disabled=${this.loading} title="Refresh" style="margin-left: auto; cursor: pointer; text-decoration: underline;">
+            Suggest
+          </span>
+          `}
         </div>
       </div>
     `;
@@ -284,6 +289,18 @@ class AISuggestionComponent extends LitElement {
   handleStop() {
     // Dispatch stop event
     this.dispatchEvent(new CustomEvent('stop-request', {
+      bubbles: true
+    }));
+  }
+
+  handleDidntWork() {
+    // Dispatch didn't work event
+    this.dispatchEvent(new CustomEvent('didnt-work', {
+      detail: {
+        suggestion: this.suggestion,
+        explanation: this.suggestion ? this.suggestion.explanation : null,
+        code: this.suggestion ? this.suggestion.code : null
+      },
       bubbles: true
     }));
   }
