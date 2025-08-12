@@ -61,6 +61,8 @@ export class PromptManager {
       currentHtml: context.currentHtml || '',
       currentCss: context.currentCss || '',
       projectData: JSON.stringify(context.projectData || {}, null, 2),
+      selectedComponent: context.selectedComponent,
+      uiState: context.uiState,
       userPrompt: context.userPrompt || 'No specific user request - suggest general improvements',
       states: this.formatStates(context.states),
       // Keep legacy support for older templates

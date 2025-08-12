@@ -581,7 +581,7 @@ class AICopilot {
 
     // Get selected component information
     const selectedComponent = this.getSelectedComponentInfo();
-    
+
     // Get UI state information
     const uiState = this.getUIStateInfo();
 
@@ -618,17 +618,65 @@ class AICopilot {
     }
   }
 
-  // Get UI state information
+  // Get comprehensive UI state information
+  getUIState() {
+    try {
+      const modal = this.editor.Modal;
+      const isModalOpen = modal.isOpen();
+      
+      return {
+        modal: {
+          isOpen: isModalOpen,
+          title: modal.getTitle?.() || null,
+          content: isModalOpen ? modal.getContent?.() : null
+        },
+        panels: this.editor.Panels.getPanels()
+          .filter(p => p.attributes.visible)
+          .map(p => p.id),
+        commandsActive: Object.keys(this.editor.Commands.getActive?.() || {}),
+        blocksPanelOpen: !!this.editor.Commands.isActive('open-blocks'),
+        layersPanelOpen: !!this.editor.Commands.isActive('open-layers'),
+        styleManagerOpen: !!this.editor.Commands.isActive('open-sm'),
+        assetManagerOpen: !!this.editor.Commands.isActive('open-assets'),
+        selectedDevice: this.editor.Devices.getSelected()?.get('id') || null
+      };
+    } catch (error) {
+      console.warn('[AI Copilot] Error getting UI state:', error);
+      return {
+        modal: { isOpen: false, title: null, content: null },
+        panels: [],
+        commandsActive: [],
+        blocksPanelOpen: false,
+        layersPanelOpen: false,
+        styleManagerOpen: false,
+        assetManagerOpen: false,
+        selectedDevice: null
+      };
+    }
+  }
+
+  // Get UI state information (legacy method - now uses getUIState)
   getUIStateInfo() {
     try {
+      const uiState = this.getUIState();
       const device = this.editor.getDevice() || 'desktop';
-      const visiblePanels = this.getVisiblePanels();
-      const selectedPage = this.editor.Pages && this.editor.Pages.getSelected() 
+      const selectedPage = this.editor.Pages && this.editor.Pages.getSelected()
         ? this.editor.Pages.getSelected().get('name') || 'Page 1'
         : 'unknown';
       const currentSelector = this.getCurrentCSSSelector();
 
-      return `Device: ${device}, Visible panels: ${visiblePanels}, Current page: ${selectedPage}, CSS selector: ${currentSelector}`;
+      return `
+Device: ${device}
+Visible panels: ${uiState.panels.join(', ') || 'none'}
+Current page: ${selectedPage}
+CSS selector: ${currentSelector}
+Modal open: ${uiState.modal.isOpen}
+Active commands: ${uiState.commandsActive.join(', ') || 'none'}
+Blocks panel: ${uiState.blocksPanelOpen ? 'open' : 'closed'}
+Layers panel: ${uiState.layersPanelOpen ? 'open' : 'closed'}
+Style manager: ${uiState.styleManagerOpen ? 'open' : 'closed'}
+Asset manager: ${uiState.assetManagerOpen ? 'open' : 'closed'}
+`;
     } catch (error) {
       return "Error retrieving UI state";
     }
@@ -639,7 +687,7 @@ class AICopilot {
     try {
       const panels = this.editor.Panels;
       if (!panels) return 'none';
-      
+
       const visiblePanels = [];
       ['views', 'blocks', 'layers', 'styles', 'traits'].forEach(panelId => {
         const panel = panels.getPanel(panelId);
@@ -647,7 +695,7 @@ class AICopilot {
           visiblePanels.push(panelId);
         }
       });
-      
+
       return visiblePanels.length > 0 ? visiblePanels.join(', ') : 'none';
     } catch (error) {
       return 'unknown';
@@ -657,22 +705,7 @@ class AICopilot {
   // Get current CSS selector being edited
   getCurrentCSSSelector() {
     try {
-      const styleManager = this.editor.StyleManager;
-      if (!styleManager) return 'none';
-      
-      const targets = styleManager.getSelected();
-      if (!targets || targets.length === 0) return 'none';
-      
-      // Get the CSS rule/selector being edited
-      const target = targets[0];
-      if (target && target.get) {
-        const selectors = target.get('selectors');
-        if (selectors && selectors.length > 0) {
-          return selectors.map(sel => sel.get ? sel.get('name') : sel).join('.');
-        }
-      }
-      
-      return 'component';
+      return editor.StyleManager.getSelected().getSelectorsString()
     } catch (error) {
       return 'unknown';
     }
