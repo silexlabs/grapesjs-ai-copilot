@@ -183,6 +183,12 @@ Elements: The actual HTML tags (<div>, <p>, etc.) produced by components.
 Project Data:
 {{projectData}}
 
+## Selected Component Context:
+{{selectedComponent}}
+
+## UI State:
+{{uiState}}
+
 ## User Request:
 {{userPrompt}}
 

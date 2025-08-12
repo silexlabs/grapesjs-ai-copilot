@@ -579,6 +579,12 @@ class AICopilot {
       })),
     }, null, 2);
 
+    // Get selected component information
+    const selectedComponent = this.getSelectedComponentInfo();
+    
+    // Get UI state information
+    const uiState = this.getUIStateInfo();
+
     // Build states array from response history - only 1 most recent interaction
     const states = this.responseHistory.slice(0, 5).map(response => ({
       timestamp: response.timestamp,
@@ -593,8 +599,83 @@ class AICopilot {
 
     return {
       projectData,
+      selectedComponent,
+      uiState,
       states
     };
+  }
+
+  // Get selected component information
+  getSelectedComponentInfo() {
+    try {
+      const selected = this.editor.getSelected();
+      if (!selected) {
+        return "No component currently selected";
+      }
+      return `Selected component ID: ${selected.getId() || 'no-id'}`;
+    } catch (error) {
+      return "Error retrieving selected component";
+    }
+  }
+
+  // Get UI state information
+  getUIStateInfo() {
+    try {
+      const device = this.editor.getDevice() || 'desktop';
+      const visiblePanels = this.getVisiblePanels();
+      const selectedPage = this.editor.Pages && this.editor.Pages.getSelected() 
+        ? this.editor.Pages.getSelected().get('name') || 'Page 1'
+        : 'unknown';
+      const currentSelector = this.getCurrentCSSSelector();
+
+      return `Device: ${device}, Visible panels: ${visiblePanels}, Current page: ${selectedPage}, CSS selector: ${currentSelector}`;
+    } catch (error) {
+      return "Error retrieving UI state";
+    }
+  }
+
+  // Get visible panels
+  getVisiblePanels() {
+    try {
+      const panels = this.editor.Panels;
+      if (!panels) return 'none';
+      
+      const visiblePanels = [];
+      ['views', 'blocks', 'layers', 'styles', 'traits'].forEach(panelId => {
+        const panel = panels.getPanel(panelId);
+        if (panel && panel.get('visible')) {
+          visiblePanels.push(panelId);
+        }
+      });
+      
+      return visiblePanels.length > 0 ? visiblePanels.join(', ') : 'none';
+    } catch (error) {
+      return 'unknown';
+    }
+  }
+
+  // Get current CSS selector being edited
+  getCurrentCSSSelector() {
+    try {
+      const styleManager = this.editor.StyleManager;
+      if (!styleManager) return 'none';
+      
+      const targets = styleManager.getSelected();
+      if (!targets || targets.length === 0) return 'none';
+      
+      // Get the CSS rule/selector being edited
+      const target = targets[0];
+      if (target && target.get) {
+        const selectors = target.get('selectors');
+        if (selectors && selectors.length > 0) {
+          return selectors.map(sel => sel.get ? sel.get('name') : sel).join('.');
+        }
+      }
+      
+      return 'component';
+    } catch (error) {
+      return 'unknown';
+    }
   }
 
   // Get console logs since a specific timestamp
