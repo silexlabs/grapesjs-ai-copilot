@@ -1,6 +1,6 @@
 {
   "name": "@silexlabs/grapesjs-ai-copilot",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Turn GrapesJS into a vibe coding experience. grapesjs-ai-copilot watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.",
   "main": "dist/index.js",
   "repository": {
