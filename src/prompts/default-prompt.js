@@ -40,7 +40,6 @@ CRITICAL SELECTOR RULES:
 - \`editor.select(component)\` - Select a component
 - \`editor.getWrapper()\` - Get root wrapper component
 - \`editor.getCss()\` - Get current CSS
-- \`editor.setCss(css)\` - Set CSS
 - \`editor.addStyle(css)\` - Add global CSS rules
 - \`editor.getComponents()\` - Get all root components
 - \`editor.getHtml()\` - Get current HTML
