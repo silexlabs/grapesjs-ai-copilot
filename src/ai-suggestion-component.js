@@ -11,11 +11,12 @@ class AISuggestionComponent extends LitElement {
     statusType: { type: String },
     userPrompt: { type: String },
     promptHistory: { type: Array },
-    historyIndex: { type: Number }
+    historyIndex: { type: Number },
+    isUserPromptResult: { type: Boolean }
   };
 
   // No shadow DOM styles - inherit from GrapesJS
-  
+
   // Override to prevent shadow DOM creation so GrapesJS CSS can penetrate
   createRenderRoot() {
     return this;
@@ -34,6 +35,7 @@ class AISuggestionComponent extends LitElement {
     this.userPrompt = '';
     this.promptHistory = [];
     this.historyIndex = -1;
+    this.isUserPromptResult = false;
   }
 
   render() {
@@ -105,6 +107,16 @@ class AISuggestionComponent extends LitElement {
   renderSuggestion() {
     return html`
       <div style="padding: 8px; display: flex; flex-direction: column; gap: 8px;">
+        ${this.isUserPromptResult ? html`
+          <div style="font-size: 10px; color: #666; margin-bottom: 4px;">
+            ✅ Executed your request
+          </div>
+        ` : html`
+          <div style="font-size: 10px; color: #666; margin-bottom: 4px;">
+            💡 AI Suggestion
+          </div>
+        `}
+
         <div class="gjs-field">
           <div style="min-height: 40px; max-height: 120px; overflow-y: auto; padding: 8px; border: none; background: transparent;">
             ${this.suggestion.explanation}
@@ -112,9 +124,11 @@ class AISuggestionComponent extends LitElement {
         </div>
 
         <div style="display: flex; gap: 4px; align-items: center;">
-          <button class="gjs-btn-prim" @click=${this.handleApply} ?disabled=${this.loading}>
-            ${this.loading ? 'Applying...' : 'Apply'}
-          </button>
+          ${!this.isUserPromptResult ? html`
+            <button class="gjs-btn-prim" @click=${this.handleApply} ?disabled=${this.loading}>
+              ${this.loading ? 'Applying...' : 'Apply'}
+            </button>
+          ` : ''}
           <span class="gjs-field-info" @click=${this.toggleCodePreview} style="cursor: pointer; text-decoration: underline;">
             ${this.showCode ? 'Hide code' : 'Show code'}
           </span>
@@ -123,7 +137,7 @@ class AISuggestionComponent extends LitElement {
           </button>
         </div>
 
-        <div class="gjs-field-code" style="max-height: 100px; overflow-y: auto; white-space: pre-wrap; font-size: 10px; ${this.showCode ? 'display: block;' : 'display: none;'}">
+        <div class="gjs-field-code" style="max-height: 500px; text-align: left; overflow-y: auto; white-space: pre-wrap; font-size: 10px; ${this.showCode ? 'display: block;' : 'display: none;'}">
           ${this.suggestion.code}
         </div>
 
@@ -270,8 +284,54 @@ class AISuggestionComponent extends LitElement {
   }
 
   // Method to update the suggestion from parent
-  updateSuggestion(suggestion) {
+  updateSuggestion(suggestion, isUserPromptResult = false) {
     this.suggestion = suggestion;
+    this.isUserPromptResult = isUserPromptResult;
+
+    // Auto-execute the code only for user prompt results
+    if (isUserPromptResult && suggestion && suggestion.code && this.editor) {
+      this.autoExecuteCode();
+    }
+  }
+
+  // Auto-execute the AI code and update the explanation
+  autoExecuteCode() {
+    if (!this.suggestion || !this.editor) return;
+
+    this.statusMessage = '';
+    this.statusType = '';
+
+    try {
+      // Execute the JavaScript code with access to the editor
+      const result = new Function('editor', this.suggestion.code)(this.editor);
+
+      // Update the explanation to show what was done
+      const executionResult = result ? ` Result: ${JSON.stringify(result)}` : '';
+      this.suggestion.explanation = `✅ ${this.suggestion.explanation}${executionResult}`;
+
+      console.log('[AI Copilot] Code executed automatically:', result);
+
+      // Dispatch success event
+      this.dispatchEvent(new CustomEvent('apply-success', {
+        detail: { suggestion: this.suggestion, result, isUserPromptResult: this.isUserPromptResult },
+        bubbles: true
+      }));
+
+    } catch (error) {
+      // Update explanation to show the error
+      this.suggestion.explanation = `❌ Error: ${error.message}\n\nOriginal plan: ${this.suggestion.explanation}`;
+
+      console.error('[AI Copilot] Auto-execution failed:', error);
+
+      // Dispatch error event
+      this.dispatchEvent(new CustomEvent('apply-error', {
+        detail: { suggestion: this.suggestion, error },
+        bubbles: true
+      }));
+    }
+
+    // Force UI update to reflect the new explanation
+    this.requestUpdate();
   }
 
   // Method to set loading state

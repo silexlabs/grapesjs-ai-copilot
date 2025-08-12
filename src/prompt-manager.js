@@ -13,18 +13,10 @@ export class PromptManager {
   async loadDefaultPrompt() {
     if (this.defaultPrompt) return this.defaultPrompt;
     
-    try {
-      // Try to load from the bundled file or use fallback
-      const response = await fetch(new URL('./prompts/default-prompt.txt', import.meta.url));
-      if (response.ok) {
-        this.defaultPrompt = await response.text();
-      } else {
-        throw new Error('Could not load default prompt file');
-      }
-    } catch (error) {
-      console.warn('[AI Copilot] Using fallback prompt:', error.message);
-      this.defaultPrompt = this.getFallbackPrompt();
-    }
+    // Import the prompt as a JavaScript module
+    const { defaultPrompt } = await import('./prompts/default-prompt.js');
+    this.defaultPrompt = defaultPrompt;
+    console.log('[AI Copilot] Loaded default prompt from module');
     
     return this.defaultPrompt;
   }
@@ -182,23 +174,6 @@ export class PromptManager {
     }
   }
   
-  // Fallback prompt if file loading fails
-  getFallbackPrompt() {
-    return `Tu es une IA intégrée à Silex, un éditeur de sites statiques no-code basé sur GrapesJS.
-
-Ton rôle est d'observer l'utilisateur et de lui proposer des actions utiles via une interface HTML dans une iframe.
-
-🎯 Retourne uniquement du code HTML complet avec CSS et JavaScript natifs.
-
-État actuel:
-HTML: {{html}}
-CSS: {{css}}
-Composants: {{componentCount}}
-Élément sélectionné: {{selectedComponent}}
-Historique: {{recentCommands}}
-
-Crée une interface utile pour aider l'utilisateur avec window.editor.`;
-  }
   
   // Reload the prompt (useful for development)
   async reloadPrompt() {

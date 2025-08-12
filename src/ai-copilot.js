@@ -137,12 +137,6 @@ class AICopilot {
     this.editor.on('styleable:change', () => {
       this.changeCount++;
     });
-
-    // Trigger analysis when editor loads content
-    this.editor.on('storage:end', () => {
-      this.forceAnalysis();
-    });
-
   }
 
   // Setup event listeners for the web component
@@ -153,11 +147,25 @@ class AICopilot {
     this.suggestionComponent.addEventListener('apply-success', (event) => {
       console.log('[AI Copilot] Code applied successfully:', event.detail);
       this.logMessage('log', 'AI code executed successfully');
+
+      // Reset change counter after user prompt execution to prevent immediate re-analysis
+      if (event.detail.isUserPromptResult) {
+        console.log('[AI Copilot] Resetting change counter after user prompt execution');
+        this.changeCount = 0;
+        this.lastSnapshot = this.createContentSnapshot();
+      }
     });
 
     this.suggestionComponent.addEventListener('apply-error', (event) => {
       console.error('[AI Copilot] Code application failed:', event.detail);
       this.logError(`Code execution failed: ${event.detail.error.message}`, event.detail.error);
+
+      // Reset change counter after user prompt execution to prevent immediate re-analysis
+      if (event.detail.isUserPromptResult) {
+        console.log('[AI Copilot] Resetting change counter after user prompt execution');
+        this.changeCount = 0;
+        this.lastSnapshot = this.createContentSnapshot();
+      }
     });
 
     // Listen for refresh requests
@@ -652,9 +660,9 @@ class AICopilot {
 
 
   // Update web component with suggestion
-  updateComponentSuggestion(suggestion) {
+  updateComponentSuggestion(suggestion, isUserPromptResult = false) {
     if (this.suggestionComponent) {
-      this.suggestionComponent.updateSuggestion(suggestion);
+      this.suggestionComponent.updateSuggestion(suggestion, isUserPromptResult);
     }
   }
 
@@ -796,11 +804,7 @@ class AICopilot {
         this.responseHistory = this.responseHistory.slice(0, 10);
       }
 
-      this.updateComponentSuggestion(suggestion);
-
-      // Reset change counter and update snapshot
-      this.changeCount = 0;
-      this.lastSnapshot = this.createContentSnapshot();
+      this.updateComponentSuggestion(suggestion, true);
       this.analysisHistory.push(responseEntry);
 
       // Clear loading state
