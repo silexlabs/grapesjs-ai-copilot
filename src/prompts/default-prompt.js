@@ -246,7 +246,7 @@ Project Data:
 ## User Request:
 {{userPrompt}}
 
-## Recent Actions (DO NOT REPEAT - This is historical context only):
+## Recent Actions (DO NOT REPEAT UNLESS IT MAKES SENSE - This is historical context):
 {{states}}
 `;
 
