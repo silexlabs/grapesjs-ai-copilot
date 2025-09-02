@@ -3,6 +3,12 @@
   "version": "0.0.32-0",
   "description": "Turn GrapesJS into a vibe coding experience. grapesjs-ai-copilot watches your edits, understands your intent, and suggests smart actions through an embedded AI assistant — from fixing SEO to making your site more accessible, responsive, and efficient.",
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/lexoyo/grapesjs-ai-copilot.git"
